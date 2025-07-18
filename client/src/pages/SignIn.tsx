@@ -20,17 +20,80 @@ import {
   UserPlus,
   LucideChrome,
   Apple,
+  Loader,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "@/hooks/useForm";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/firebase";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+type FormData = {
+  email: string;
+  password: string;
+};
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { formData, handleChange } = useForm<FormData>({
+    email: "",
+    password: "",
+  });
+
+  const handleSignIn = async (e: any) => {
+    e.preventDefault();
+
+    if (Object.values(formData).some((value) => value.trim() === "")) {
+      return toast.error("Missing Required Field");
+    }
+
+    console.log(formData);
+
+    setIsLoading(true);
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      const token = await userCredential.user.getIdToken();
+
+      const response = await axios.put(
+        "http://localhost:8080/api/user",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response?.data.role === "landlord") {
+        navigate("/landlord");
+      } else if (response?.data.role === "tenant") {
+        navigate("/tenant");
+      } else {
+        navigate("/onboarding");
+      }
+      toast.success("Logged In Successfully");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <main className="flex-grow flex items-center justify-center p-4">
+      <form
+        onSubmit={handleSignIn}
+        className="flex-grow flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <div className="flex flex-col items-center justify-between gap-1">
@@ -50,6 +113,9 @@ export default function SignIn() {
                 <Input
                   id="email"
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="email@example.com"
                   className="pl-9"
                 />
@@ -64,10 +130,14 @@ export default function SignIn() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   className="pl-9"
                 />
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   className="absolute right-0 top-0 h-full"
@@ -93,8 +163,9 @@ export default function SignIn() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button onClick={() => navigate("/onboarding")} className="w-full">
-              Sign In
+            <Button disabled={isLoading} className="w-full">
+              {isLoading ? <Loader className="animate-spin h-5 w-5" /> : ""}Sign
+              In
             </Button>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -107,11 +178,11 @@ export default function SignIn() {
               </div>
             </div>
             <div className="flex flex-col gap-2 w-full">
-              <Button variant="outline">
+              <Button type="button" variant="outline">
                 <LucideChrome className="w-4 h-4 mr-2" />
                 Google
               </Button>
-              <Button variant="outline">
+              <Button type="button" variant="outline">
                 <Apple className="w-4 h-4 mr-2" />
                 Apple
               </Button>
@@ -126,7 +197,7 @@ export default function SignIn() {
             </div>
           </CardFooter>
         </Card>
-      </main>
+      </form>
     </div>
   );
 }

@@ -6,11 +6,19 @@ const UserSchema = mongoose.Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    role: { type: String, default: null },
-    notifications: { type: Boolean, default: null },
+    role: { type: String },
+    notifications: { type: Boolean },
+
+    accountType: { type: String },
+    numberOfProperties: { type: Number },
+
+    moveInDate: { type: String },
+    emergencyContact: { type: String },
+
     verification: {
-      idFront: { type: String, default: null },
-      idBack: { type: String, default: null },
+      idFront: { type: String },
+      idBack: { type: String },
+      proofOfAddres: { type: String },
     },
   },
   { timestamps: true }

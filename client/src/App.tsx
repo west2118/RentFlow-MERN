@@ -26,6 +26,7 @@ import TenantSettings from "./pages/tenant/TenantSettings";
 import HomeLayout from "./components/app/HomeLayout";
 import SignUp from "./pages/SignUp";
 import OnboardingPage from "./pages/Onboarding";
+import { useSyncInfo } from "./hooks/useSyncInfo";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -61,6 +62,8 @@ const router = createBrowserRouter(
 );
 
 function App() {
+  useSyncInfo();
+
   return (
     <>
       <ToastContainer />
