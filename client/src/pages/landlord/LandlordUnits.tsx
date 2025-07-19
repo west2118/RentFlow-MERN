@@ -21,8 +21,18 @@ import {
   AlertCircle,
   MoreVertical,
 } from "lucide-react";
+import useFetchData from "@/hooks/useFetchData";
+import { useUserStore } from "@/store/useUserStore";
+import LandlordUnitCard from "@/components/app/landlord/LandlordUnitCard";
+import type { UnitType } from "@/types/unitTypes";
 
 export function LandlordUnits() {
+  const token = useUserStore((state) => state.userToken);
+  const { data, loading, error } = useFetchData<UnitType[]>(
+    "http://localhost:8080/api/unit",
+    token
+  );
+
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -43,76 +53,12 @@ export function LandlordUnits() {
         <TabsContent value="all">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Available Unit Card */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg">Unit 3B</CardTitle>
-                    <CardDescription>2 Bed, 1 Bath Apartment</CardDescription>
-                  </div>
-                  <Badge variant="secondary">Available</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center text-sm">
-                  <Home className="h-4 w-4 mr-2 text-muted-foreground" />
-                  123 Main St, Apt 3B
-                </div>
-                <div className="flex items-center text-sm">
-                  <CircleDollarSign className="h-4 w-4 mr-2 text-muted-foreground" />
-                  $1,200/month
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" size="sm">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Add Lease
-                </Button>
-                <Button size="sm">
-                  <User className="h-4 w-4 mr-2" />
-                  Assign Tenant
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* Occupied Unit Card */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg">Unit 5A</CardTitle>
-                    <CardDescription>3 Bed, 2 Bath Condo</CardDescription>
-                  </div>
-                  <Badge variant="default">Occupied</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center text-sm">
-                  <Home className="h-4 w-4 mr-2 text-muted-foreground" />
-                  456 Oak Ave, Unit 5A
-                </div>
-                <div className="flex items-center text-sm">
-                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                  Sarah Johnson
-                </div>
-                <div className="flex items-center text-sm">
-                  <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-                  Lease ends: 05/15/2025
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" size="sm">
-                  <FileText className="h-4 w-4 mr-2" />
-                  View Lease
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
+            {data?.map((item) => (
+              <LandlordUnitCard key={item._id} item={item} />
+            ))}
 
             {/* Another Occupied Unit */}
-            <Card>
+            {/* <Card>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div>
@@ -145,10 +91,10 @@ export function LandlordUnits() {
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </CardFooter>
-            </Card>
+            </Card> */}
 
             {/* Another Available Unit */}
-            <Card>
+            {/* <Card>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div>
@@ -182,7 +128,7 @@ export function LandlordUnits() {
                   Assign Tenant
                 </Button>
               </CardFooter>
-            </Card>
+            </Card> */}
           </div>
         </TabsContent>
 

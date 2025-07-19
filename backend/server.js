@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 import userRoutes from "./routes/userRoutes.js";
+import unitRoutes from "./routes/unitRoutes.js";
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./serviceAccountKey.json");
@@ -29,3 +30,4 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 });
 
 app.use("/api", userRoutes);
+app.use("/api", unitRoutes);

@@ -10,6 +10,7 @@ type ImageUploadProps = {
   };
   onChangeImage: (e: any, type: string) => void;
   name: string;
+  width?: number;
 };
 
 const ImageUpload = ({
@@ -17,9 +18,10 @@ const ImageUpload = ({
   imageData,
   onChangeImage,
   name,
+  width = 200,
 }: ImageUploadProps) => {
   return (
-    <div className="space-y-2 w-[200px]">
+    <div className={`space-y-2 w-[${width}px]`}>
       <Label>{label}</Label>
 
       <div className="relative w-full h-full">

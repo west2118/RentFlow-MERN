@@ -12,6 +12,7 @@ const UserSchema = mongoose.Schema(
     accountType: { type: String },
     numberOfProperties: { type: Number },
 
+    unitId: { type: mongoose.Schema.Types.ObjectId, ref: "Unit" },
     moveInDate: { type: String },
     emergencyContact: { type: String },
 
