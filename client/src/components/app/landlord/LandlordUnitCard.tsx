@@ -14,15 +14,23 @@ import {
   CircleDollarSign,
   FileText,
   Home,
+  MoreVertical,
   Ruler,
   User,
 } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { InviteTenantModal } from "./InviteTenantModal";
+import { formatDate } from "@/constants/formatDate";
 
 type LandlordUnitCardProps = {
   item: UnitType;
 };
 
 const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
+  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -35,7 +43,12 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
               {item?.type}
             </CardDescription>
           </div>
-          <Badge variant="secondary">Available</Badge>
+          <Badge
+            variant={`${
+              item.status === "Available" ? "secondary" : "default"
+            }`}>
+            {item?.status}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -58,25 +71,52 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
           <>
             <div className="flex items-center text-sm">
               <User className="h-4 w-4 mr-2 text-muted-foreground" />
-              Sarah Johnson
+              {item.tenantName}
             </div>
             <div className="flex items-center text-sm">
               <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-              Lease ends: 05/15/2025
+              Lease ends: {item?.leaseEnd ? formatDate(item?.leaseEnd) : null}
             </div>
           </>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" size="sm">
-          <FileText className="h-4 w-4 mr-2" />
-          Add Lease
-        </Button>
-        <Button size="sm">
-          <User className="h-4 w-4 mr-2" />
-          Assign Tenant
-        </Button>
+      <CardFooter
+        className={`flex ${
+          item.status === "Occupied" ? "justify-between" : "justify-end"
+        }`}>
+        {item?.status === "Occupied" ? (
+          <>
+            <Button variant="outline" size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              View Lease
+            </Button>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </>
+        ) : item?.hasLease ? (
+          <Button onClick={() => setIsModalOpen(true)} size="sm">
+            <User className="h-4 w-4 mr-2" />
+            Assign Tenant
+          </Button>
+        ) : (
+          <Button
+            onClick={() => navigate(`/landlord/lease/create/${item._id}`)}
+            variant="default"
+            size="sm">
+            <FileText className="h-4 w-4 mr-2" />
+            Add Lease
+          </Button>
+        )}
       </CardFooter>
+
+      {isModalOpen && (
+        <InviteTenantModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          unitId={item._id}
+        />
+      )}
     </Card>
   );
 };

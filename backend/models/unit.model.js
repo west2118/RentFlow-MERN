@@ -25,8 +25,6 @@ const UnitSchema = mongoose.Schema({
   notes: { type: String, required: true },
   landlordUid: { type: String, required: true },
   tenantUid: { type: String, default: null },
-  leaseStart: { type: String },
-  leaseEnd: { type: String },
 });
 
 const Unit = mongoose.model("Unit", UnitSchema);

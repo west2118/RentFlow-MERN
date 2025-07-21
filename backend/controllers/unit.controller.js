@@ -1,7 +1,8 @@
+import Lease from "../models/lease.model.js";
 import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
 
-const getUnit = async (req, res) => {
+const getUnitWithLeaseStatus = async (req, res) => {
   try {
     const { uid } = req.user;
 
@@ -10,9 +11,32 @@ const getUnit = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const sessions = await Unit.find({ landlordUid: uid });
+    const units = await Unit.find({ landlordUid: uid });
 
-    res.status(200).json(sessions);
+    const getUnitWithLeaseStatus = [];
+
+    for (const unit of units) {
+      const activeLease = await Lease.findOne({
+        unitId: unit._id,
+        isActive: true,
+      });
+
+      let tenantName = null;
+
+      if (activeLease?.tenantUid) {
+        const tenant = await User.findOne({ uid: activeLease.tenantUid });
+        tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : null;
+      }
+
+      getUnitWithLeaseStatus.push({
+        ...unit.toObject(),
+        hasLease: !!activeLease,
+        leaseEnd: activeLease?.leaseEnd || null,
+        tenantName,
+      });
+    }
+
+    res.status(200).json(getUnitWithLeaseStatus);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -75,4 +99,4 @@ const postUnit = async (req, res) => {
   }
 };
 
-export { postUnit, getUnit };
+export { postUnit, getUnitWithLeaseStatus };

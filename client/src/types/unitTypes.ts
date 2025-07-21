@@ -15,8 +15,11 @@ export type UnitType = {
   notes: string;
   landlordUid: string;
   tenantUid?: string | null;
-  leaseStart?: string;
+  tenantName?: string | null;
+  tenantGmail?: string;
+  hasLease?: boolean;
   leaseEnd?: string;
   createdAt?: string;
   updatedAt?: string;
+  paymentSchedule?: string;
 };

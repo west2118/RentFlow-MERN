@@ -36,6 +36,8 @@ const useFetchData = <T extends Record<string, any>>(
             "An unexpected error occurred";
           setError(errorMessage);
         }
+      } finally {
+        setLoading(false);
       }
     };
 

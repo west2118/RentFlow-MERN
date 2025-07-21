@@ -13,6 +13,8 @@ app.use(express.json());
 
 import userRoutes from "./routes/userRoutes.js";
 import unitRoutes from "./routes/unitRoutes.js";
+import leaseRoutes from "./routes/leaseRoutes.js";
+import inviteRoutes from "./routes/inviteRoutes.js";
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./serviceAccountKey.json");
@@ -31,3 +33,5 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 
 app.use("/api", userRoutes);
 app.use("/api", unitRoutes);
+app.use("/api", leaseRoutes);
+app.use("/api", inviteRoutes);

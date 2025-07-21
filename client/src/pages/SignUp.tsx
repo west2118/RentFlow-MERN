@@ -31,7 +31,7 @@ import {
   LucideChrome,
   Loader,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useForm } from "@/hooks/useForm";
 import { toast } from "react-toastify";
@@ -59,6 +59,8 @@ export default function SignUp() {
     password: "",
     confirmPassword: "",
   });
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,6 +79,13 @@ export default function SignUp() {
 
     setIsLoading(true);
 
+    const fullData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      ...(inviteToken && { inviteToken }),
+    };
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -89,9 +98,7 @@ export default function SignUp() {
       await axios.put(
         "http://localhost:8080/api/user",
         {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
+          ...fullData,
         },
         {
           headers: {

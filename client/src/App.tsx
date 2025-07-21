@@ -28,6 +28,7 @@ import SignUp from "./pages/SignUp";
 import OnboardingPage from "./pages/Onboarding";
 import { useSyncInfo } from "./hooks/useSyncInfo";
 import { LandlordCreateUnit } from "./pages/landlord/LandlordCreateUnit";
+import { LandlordCreateLease } from "./pages/landlord/LandlordCreateLease";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -49,6 +50,7 @@ const router = createBrowserRouter(
         <Route path="payments" element={<LandlordPayments />} />
         <Route path="documents" element={<LandlordDocuments />} />
         <Route path="settings" element={<LandlordSettings />} />
+        <Route path="lease/create/:id" element={<LandlordCreateLease />} />
       </Route>
 
       <Route path="/tenant" element={<TenantLayout />}>
