@@ -25,90 +25,41 @@ import {
   ChevronDown,
   Plus,
 } from "lucide-react";
+import TenantDashboardUnitCard from "@/components/app/tenant/dashboard/TenantDashboardUnitCard";
+import useFetchData from "@/hooks/useFetchData";
+import { useUserStore } from "@/store/useUserStore";
+import type { UnitType } from "@/types/unitTypes";
+import type { LeaseType } from "@/types/leaseTypes";
+import TenantDashboardRentCard from "@/components/app/tenant/dashboard/TenantDashboardRentCard";
+import TenantDashboardLeaseCard from "@/components/app/tenant/dashboard/TenantDashboardLeaseCard";
+import { Loading } from "@/components/app/Loading";
+
+type DataType = {
+  unit: UnitType;
+  lease: LeaseType;
+};
 
 const TenantDashbordContent = () => {
+  const user = useUserStore((state) => state.user);
+  const token = useUserStore((state) => state.userToken);
+  const { data, loading, error } = useFetchData<DataType>(
+    `http://localhost:8080/api/unit-lease`,
+    token
+  );
+
+  if (loading || !data) return <Loading />;
+
   return (
     <main className="p-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* My Unit Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">My Unit</CardTitle>
-            <Home className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">Unit 3B</div>
-            <p className="text-sm text-muted-foreground">123 Main St, Apt 3B</p>
-            <div className="mt-2 text-sm">
-              <p>2 Bed, 1 Bath</p>
-              <p>750 sq ft</p>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full">
-              View Details
-            </Button>
-          </CardFooter>
-        </Card>
+        {data?.unit && <TenantDashboardUnitCard unit={data?.unit} />}
 
         {/* Rent Status Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Rent Status</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold mb-2">$1,200</div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-muted-foreground">Due Date</span>
-              <span>June 1, 2023</span>
-            </div>
-            <div className="flex justify-between text-sm mb-3">
-              <span className="text-muted-foreground">Status</span>
-              <Badge variant="default">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Paid
-              </Badge>
-            </div>
-            <Progress value={100} className="h-2" />
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full">Make Payment</Button>
-          </CardFooter>
-        </Card>
+        <TenantDashboardRentCard />
 
         {/* Lease Info Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Lease Information
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-muted-foreground">Start Date</span>
-              <span>Jan 1, 2023</span>
-            </div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-muted-foreground">End Date</span>
-              <span>Dec 31, 2023</span>
-            </div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-muted-foreground">Monthly Rent</span>
-              <span>$1,200</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Payment Due</span>
-              <span>1st of each month</span>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full">
-              View Lease
-            </Button>
-          </CardFooter>
-        </Card>
+        {data?.lease && <TenantDashboardLeaseCard lease={data?.lease} />}
       </div>
 
       {/* Maintenance Requests */}

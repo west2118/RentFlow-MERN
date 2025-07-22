@@ -1,3 +1,6 @@
+import { Loading } from "@/components/app/Loading";
+import TenantUnitDetailsCards from "@/components/app/tenant/unit/TenantUnitDetailsCards";
+import TenantUnitLeaseInfoCard from "@/components/app/tenant/unit/TenantUnitLeaseInfoCard";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,17 +11,35 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import useFetchData from "@/hooks/useFetchData";
+import { useUserStore } from "@/store/useUserStore";
+import type { LeaseType } from "@/types/leaseTypes";
+import type { UnitType } from "@/types/unitTypes";
 import { Download, FileText } from "lucide-react";
 
-import React from "react";
+type DataType = {
+  unit: UnitType;
+  lease: LeaseType;
+};
 
 const TenantUnit = () => {
+  const user = useUserStore((state) => state.user);
+  const token = useUserStore((state) => state.userToken);
+  const { data, loading, error } = useFetchData<DataType>(
+    `http://localhost:8080/api/unit-lease`,
+    token
+  );
+
+  if (loading || !data) return <Loading />;
+
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold">My Unit</h2>
-          <p className="text-muted-foreground">Unit 3B - 123 Main St, Apt 3B</p>
+          <p className="text-muted-foreground">
+            Unit {data?.unit?.unitNumber} - {data?.unit?.address}
+          </p>
         </div>
         <Button variant="outline">
           <FileText className="h-4 w-4 mr-2" />
@@ -28,78 +49,10 @@ const TenantUnit = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Unit Details Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Unit Details</CardTitle>
-            <CardDescription>
-              Basic information about your rental unit
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Unit Type</span>
-              <span>2 Bed, 1 Bath Apartment</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Square Footage</span>
-              <span>750 sq ft</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Parking</span>
-              <span>1 Assigned Space (#32)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Amenities</span>
-              <span>In-unit laundry, AC</span>
-            </div>
-          </CardContent>
-        </Card>
+        {data?.unit && <TenantUnitDetailsCards unit={data?.unit} />}
 
         {/* Lease Information Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Lease Information</CardTitle>
-            <CardDescription>
-              Your current rental agreement details
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Lease Start</span>
-              <span>January 1, 2023</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Lease End</span>
-              <span>December 31, 2023</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Monthly Rent</span>
-              <span>$1,200</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Security Deposit</span>
-              <span>$1,200</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Payment Due Date</span>
-              <span>1st of each month</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Late Fee</span>
-              <span>$50 after 5 days</span>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline">
-              <FileText className="h-4 w-4 mr-2" />
-              View Full Lease
-            </Button>
-            <Button>
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
-          </CardFooter>
-        </Card>
+        {data?.lease && <TenantUnitLeaseInfoCard lease={data?.lease} />}
 
         {/* Rules & Regulations Card */}
         <Card className="md:col-span-2">

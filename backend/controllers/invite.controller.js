@@ -1,9 +1,9 @@
 import Invite from "../models/invite.model.js";
 import User from "../models/user.model.js";
 import { v4 as uuidv4 } from "uuid";
+import Unit from "../models/unit.model.js";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import Unit from "../models/unit.model.js";
 dotenv.config({ path: [".env.local", ".env"] });
 
 const getUserInvite = async (req, res) => {

@@ -42,6 +42,28 @@ const getUnitWithLeaseStatus = async (req, res) => {
   }
 };
 
+const getUserUnitAndLease = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const unit = await Unit.findById(user.unitId);
+
+    const lease = await Lease.findOne({
+      tenantUid: user.uid,
+      unitId: user.unitId,
+    });
+
+    res.status(200).json({ unit, lease });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const postUnit = async (req, res) => {
   try {
     const { uid } = req.user;
@@ -94,9 +116,8 @@ const postUnit = async (req, res) => {
 
     res.status(200).json({ message: "Unit created successfully!", newUnit });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-export { postUnit, getUnitWithLeaseStatus };
+export { postUnit, getUserUnitAndLease, getUnitWithLeaseStatus };

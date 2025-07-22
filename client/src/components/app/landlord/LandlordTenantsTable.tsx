@@ -33,29 +33,21 @@ const LandlordTenantsTable = ({ item }: { item: UnitType }) => {
       </TableCell>
 
       <TableCell>
-        <div className="flex items-center">
-          <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-          {item?.name}
-        </div>
+        <div className="flex items-center">{item?.name}</div>
       </TableCell>
 
       <TableCell>
         <div className="flex items-center">
-          <DollarSign className="h-4 w-4 mr-2 text-muted-foreground" />$
-          {item?.rentAmount} - {item?.paymentSchedule}
+          ${item?.rentAmount} - {item?.paymentSchedule}
         </div>
       </TableCell>
 
       <TableCell>
-        <div className="flex items-center">
-          <Home className="h-4 w-4 mr-2 text-muted-foreground" />
-          Unit {item?.unitNumber}
-        </div>
+        <div className="flex items-center">Unit {item?.unitNumber}</div>
       </TableCell>
 
       <TableCell>
         <div className="flex items-center">
-          <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
           {item?.leaseEnd ? formatDate(item?.leaseEnd) : null}
         </div>
       </TableCell>
@@ -64,9 +56,6 @@ const LandlordTenantsTable = ({ item }: { item: UnitType }) => {
         <div className="flex items-center space-x-2">
           <Button variant="ghost" size="icon">
             <Mail className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Phone className="h-4 w-4" />
           </Button>
         </div>
       </TableCell>

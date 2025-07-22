@@ -22,4 +22,5 @@ export type UserType = {
   numberOfProperties?: number; // landlord only
   emergencyContact?: string; // tenant only
   moveInDate?: string; // tenant only
+  unitId?: string;
 };
