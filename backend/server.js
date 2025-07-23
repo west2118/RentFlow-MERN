@@ -16,6 +16,8 @@ import unitRoutes from "./routes/unitRoutes.js";
 import leaseRoutes from "./routes/leaseRoutes.js";
 import inviteRoutes from "./routes/inviteRoutes.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import Payment from "./models/payment.model.js";
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./serviceAccountKey.json");
@@ -34,6 +36,8 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 
 app.use("/api", userRoutes);
 app.use("/api", unitRoutes);
+app.use("/api", unitRoutes);
 app.use("/api", leaseRoutes);
 app.use("/api", inviteRoutes);
 app.use("/api", maintenanceRoutes);
+app.use("/api", paymentRoutes);

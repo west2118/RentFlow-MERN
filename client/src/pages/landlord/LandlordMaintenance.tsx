@@ -44,6 +44,7 @@ import { useUserStore } from "@/store/useUserStore";
 import useFetchData from "@/hooks/useFetchData";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import LandlordMaintenanceTable from "@/components/app/landlord/maintenance/LandlordMaintenanceTable";
+import { Loading } from "@/components/app/Loading";
 
 export function LandlordMaintenance() {
   const token = useUserStore((state) => state.userToken);
@@ -51,6 +52,10 @@ export function LandlordMaintenance() {
     "http://localhost:8080/api/landlord-maintenance",
     token
   );
+
+  if (!data || loading) {
+    return <Loading />;
+  }
 
   return (
     <main className="p-6">

@@ -46,6 +46,7 @@ import type { UserType } from "@/types/userTypes";
 import { useUserStore } from "@/store/useUserStore";
 import LandlordTenantsTable from "@/components/app/landlord/LandlordTenantsTable";
 import type { UnitType } from "@/types/unitTypes";
+import { Loading } from "@/components/app/Loading";
 
 export function LandlordTenant() {
   const token = useUserStore((state) => state.userToken);
@@ -53,6 +54,10 @@ export function LandlordTenant() {
     "http://localhost:8080/api/landlord-tenants",
     token
   );
+
+  if (!data || loading) {
+    return <Loading />;
+  }
 
   return (
     <main className="p-6">

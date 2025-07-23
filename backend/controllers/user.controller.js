@@ -1,5 +1,6 @@
 import Invite from "../models/invite.model.js";
 import Lease from "../models/lease.model.js";
+import Payment from "../models/payment.model.js";
 import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
 
@@ -38,7 +39,7 @@ const putUser = async (req, res) => {
 
       unitId = invite.unitId;
 
-      await Lease.findOneAndUpdate(
+      const updatedLease = await Lease.findOneAndUpdate(
         { unitId: invite.unitId, isActive: true },
         {
           tenantUid: uid,
@@ -53,6 +54,11 @@ const putUser = async (req, res) => {
           status: "Occupied",
         },
         { new: true }
+      );
+
+      await Payment.updateMany(
+        { unitId: invite.unitId, leaseId: updatedLease._id },
+        { tenantUid: uid }
       );
 
       invite.used = true;

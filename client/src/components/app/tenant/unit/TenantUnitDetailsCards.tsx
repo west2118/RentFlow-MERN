@@ -17,21 +17,18 @@ const TenantUnitDetailsCards = ({ unit }: { unit: UnitType }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex justify-between">
+        <div className="grid grid-cols-2 gap-y-2">
           <span className="text-muted-foreground">Unit Type</span>
           <span className="text-end">
             {unit?.bedrooms} Bed, {unit?.bathrooms} Bath {unit?.type}
           </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Address</span>
-          <span className="text-end">{unit?.address}</span>
-        </div>
-        <div className="flex justify-between">
+
           <span className="text-muted-foreground">Square Footage</span>
           <span className="text-end">{unit?.size} sq ft</span>
-        </div>
-        <div className="flex justify-between">
+
+          <span className="text-muted-foreground">Address</span>
+          <span className="text-end">{unit?.address}</span>
+
           <span className="text-muted-foreground">Amenities</span>
           <span className="text-end">{unit?.amenities.join(", ")}</span>
         </div>

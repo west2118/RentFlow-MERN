@@ -26,6 +26,7 @@ import { useUserStore } from "@/store/useUserStore";
 import LandlordUnitCard from "@/components/app/landlord/LandlordUnitCard";
 import type { UnitType } from "@/types/unitTypes";
 import { useNavigate } from "react-router-dom";
+import { Loading } from "@/components/app/Loading";
 
 export function LandlordUnits() {
   const navigate = useNavigate();
@@ -34,6 +35,10 @@ export function LandlordUnits() {
     "http://localhost:8080/api/unit",
     token
   );
+
+  if (!data || loading) {
+    return <Loading />;
+  }
 
   return (
     <main className="p-6">
