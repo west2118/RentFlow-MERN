@@ -21,7 +21,7 @@ const ImageUpload = ({
   width = 200,
 }: ImageUploadProps) => {
   return (
-    <div className={`space-y-2 w-[${width}px]`}>
+    <div className={`space-y-2`} style={{ width }}>
       <Label>{label}</Label>
 
       <div className="relative w-full h-full">

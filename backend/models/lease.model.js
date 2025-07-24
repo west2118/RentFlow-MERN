@@ -21,6 +21,10 @@ const LeaseSchema = mongoose.Schema(
     },
     notes: { type: String, required: true },
     isActive: { type: Boolean, default: true },
+    lateFee: {
+      amount: { type: Number },
+      afterDays: { type: Number },
+    },
   },
   {
     timestamps: true,

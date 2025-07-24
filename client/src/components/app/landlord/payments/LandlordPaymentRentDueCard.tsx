@@ -31,7 +31,7 @@ import LandlordPaymentDueTableRow from "./LandlordPaymentDueTableRow";
 
 const LandlordPaymentRentDueCard = ({ data }: { data: PaymentType[] }) => {
   return (
-    <Card className="lg:col-span-2">
+    <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
@@ -52,12 +52,13 @@ const LandlordPaymentRentDueCard = ({ data }: { data: PaymentType[] }) => {
               <TableHead>Amount</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Receipt</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data?.map((item) => (
-              <LandlordPaymentDueTableRow item={item} />
+              <LandlordPaymentDueTableRow key={item?._id} item={item} />
             ))}
           </TableBody>
         </Table>

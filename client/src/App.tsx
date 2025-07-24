@@ -30,6 +30,7 @@ import { useSyncInfo } from "./hooks/useSyncInfo";
 import { LandlordCreateUnit } from "./pages/landlord/LandlordCreateUnit";
 import { LandlordCreateLease } from "./pages/landlord/LandlordCreateLease";
 import TenantCreateMaintenanceRequest from "./pages/tenant/TenantCreateMaintenanceRequest";
+import { TenantMakePayment } from "./pages/tenant/TenantMakePayment";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -61,6 +62,7 @@ const router = createBrowserRouter(
         <Route path="payments" element={<TenantPayment />} />
         <Route path="documents" element={<TenantDocuments />} />
         <Route path="settings" element={<TenantSettings />} />
+        <Route path="make-payment/:id" element={<TenantMakePayment />} />
         <Route
           path="maintenance-request/create"
           element={<TenantCreateMaintenanceRequest />}

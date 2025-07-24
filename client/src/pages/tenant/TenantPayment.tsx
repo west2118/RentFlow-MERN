@@ -49,6 +49,7 @@ import useFetchData from "@/hooks/useFetchData";
 import type { PaymentType } from "@/types/paymentTypes";
 import { Loading } from "@/components/app/Loading";
 import TenantPaymentCompletedTableCard from "@/components/app/tenant/payments/TenantPaymentCompletedTableCard";
+import { useNavigate } from "react-router-dom";
 
 type DataType = {
   paymentMonth: PaymentType;
@@ -56,6 +57,7 @@ type DataType = {
 };
 
 const TenantPayment = () => {
+  const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
   const { data, loading, error } = useFetchData<DataType>(
     `http://localhost:8080/api/tenant-payment`,
@@ -71,7 +73,11 @@ const TenantPayment = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Payments</h2>
         {data?.paymentMonth.status === "Pending" && (
-          <Button variant="default">
+          <Button
+            onClick={() =>
+              navigate(`/tenant/make-payment/${data?.paymentMonth._id}`)
+            }
+            variant="default">
             <CreditCardIcon className="h-4 w-4 mr-2" />
             Make Payment
           </Button>

@@ -90,7 +90,9 @@ const getTenantPayment = async (req, res) => {
 
     const completedPayment = await Payment.find({
       tenantUid: uid,
-      status: "Paid",
+      dueDate: {
+        $lte: new Date(),
+      },
     });
 
     res.status(200).json({ paymentMonth, completedPayment });
@@ -99,4 +101,22 @@ const getTenantPayment = async (req, res) => {
   }
 };
 
-export { getPaymentMonth, getTenantPayment };
+const getPayment = async (req, res) => {
+  try {
+    const { uid } = req.user;
+    const { id } = req.params;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const payment = await Payment.findById(id);
+
+    res.status(200).json(payment);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export { getPaymentMonth, getTenantPayment, getPayment };

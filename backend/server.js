@@ -17,7 +17,7 @@ import leaseRoutes from "./routes/leaseRoutes.js";
 import inviteRoutes from "./routes/inviteRoutes.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
-import Payment from "./models/payment.model.js";
+import receiptRoutes from "./routes/receiptRoutes.js";
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./serviceAccountKey.json");
@@ -41,3 +41,4 @@ app.use("/api", leaseRoutes);
 app.use("/api", inviteRoutes);
 app.use("/api", maintenanceRoutes);
 app.use("/api", paymentRoutes);
+app.use("/api", receiptRoutes);

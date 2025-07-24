@@ -74,13 +74,11 @@ export function LandlordPayments() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Rent Due List */}
-        <LandlordPaymentRentDueCard data={data} />
+      {/* Rent Due List */}
+      <LandlordPaymentRentDueCard data={data} />
 
-        {/* Payment Actions */}
-        <LandlordPaymentActionsCard />
-      </div>
+      {/* Payment Actions */}
+      {/* <LandlordPaymentActionsCard /> */}
     </main>
   );
 }

@@ -4,10 +4,19 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/constants/formatDate";
 import { statusPaymentStyle } from "@/constants/statusPaymentStyle";
 import type { PaymentType } from "@/types/paymentTypes";
-import { Bell, CalendarDays, CheckCircle2, MoreVertical } from "lucide-react";
-import React from "react";
+import {
+  Bell,
+  CalendarDays,
+  CheckCircle2,
+  Eye,
+  MoreVertical,
+} from "lucide-react";
+import React, { useState } from "react";
+import { ReceiptModal } from "../../ReceiptModal";
 
 const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   return (
     <TableRow>
       <TableCell>
@@ -22,6 +31,16 @@ const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
         </div>
       </TableCell>
       <TableCell>{statusPaymentStyle(item?.status)}</TableCell>
+      <TableCell>
+        <Button
+          variant="default"
+          size="default"
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2">
+          <Eye className="h-4 w-4" />
+          View Receipt
+        </Button>
+      </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end space-x-1">
           <Button variant="ghost" size="icon">
@@ -32,6 +51,14 @@ const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
           </Button>
         </div>
       </TableCell>
+
+      {isModalOpen && (
+        <ReceiptModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          payment={item}
+        />
+      )}
     </TableRow>
   );
 };

@@ -73,8 +73,6 @@ export function InviteTenantModal({
     };
   }, [isModalOpen]);
 
-  if (!isModalOpen) return null;
-
   const handleSubmit = async () => {
     if (Object.values(formData).some((value) => value.trim() === "")) {
       return toast.error("Missing field required");
