@@ -53,14 +53,6 @@ const LandlordTenantsTable = ({ item }: { item: UnitType }) => {
       </TableCell>
 
       <TableCell>
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
-            <Mail className="h-4 w-4" />
-          </Button>
-        </div>
-      </TableCell>
-
-      <TableCell>
         <Badge variant="default">
           <CheckCircle2 className="h-3 w-3 mr-1" />
           Current

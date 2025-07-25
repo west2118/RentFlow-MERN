@@ -25,10 +25,12 @@ import {
   FileText,
   ImageIcon,
   Check,
+  Loader,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { toast } from "react-toastify";
+import { LazyImage } from "./LazyImage";
 
 type ReceiptModalProps = {
   isModalOpen: true;
@@ -46,6 +48,7 @@ export function ReceiptModal({
 
   const [data, setData] = useState<ReceiptType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isButtonsLoading, setIsButtonsLoading] = useState(false);
 
   useEffect(() => {
     if (!payment?._id || !token) return;
@@ -87,6 +90,44 @@ export function ReceiptModal({
       document.body.classList.remove("overflow-hidden");
     };
   }, [isModalOpen]);
+
+  const handleAcceptReceipt = async (status: string) => {
+    setIsButtonsLoading(true);
+
+    try {
+      let response;
+
+      if (status === "Accepted") {
+        response = await axios.put(
+          `http://localhost:8080/api/accept-receipt/${data?._id}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        response = await axios.put(
+          `http://localhost:8080/api/reject-receipt/${data?._id}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+
+      toast.success(response?.data?.message);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setIsButtonsLoading(false);
+    }
+  };
+
+  console.log(data?.status);
 
   const modalRoot = document.getElementById("modal-root");
   if (!modalRoot) return null;
@@ -134,10 +175,10 @@ export function ReceiptModal({
           <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto hide-scrollbar">
             {/* Payment Status Badge */}
             <div className="flex justify-between items-center">
-              {statusPaymentStyle(data?.status)}
+              {statusPaymentStyle(payment?.status)}
 
               <span className="text-sm text-muted-foreground">
-                Transaction ID: #PAY-2024-0520
+                Transaction ID: #{data?._id}
               </span>
             </div>
 
@@ -228,11 +269,7 @@ export function ReceiptModal({
               </CardHeader>
               <CardContent>
                 <div className="border rounded-lg overflow-hidden">
-                  <img
-                    src={data?.fileUrl}
-                    alt="Payment receipt"
-                    className="w-full h-auto object-contain max-h-96"
-                  />
+                  <LazyImage src={data?.fileUrl} alt="Payment receipt" />
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between items-center">
@@ -260,16 +297,24 @@ export function ReceiptModal({
 
         {/* Modal Footer */}
         <div className="p-4 border-t flex justify-between gap-2">
-          <Button onClick={isCloseModal} variant="outline">
+          <Button
+            disabled={isButtonsLoading}
+            onClick={isCloseModal}
+            variant="outline">
             Close
           </Button>
           {data?.status === "Pending" && data?.landlordUid === userUid ? (
             <div className="flex items-center space-x-2">
-              <Button variant="destructive">
+              <Button
+                onClick={() => handleAcceptReceipt("Rejected")}
+                disabled={isButtonsLoading}
+                variant="destructive">
                 <X className="h-4 w-4 mr-1" />
                 Reject Receipt
               </Button>
-              <Button>
+              <Button
+                disabled={isButtonsLoading}
+                onClick={() => handleAcceptReceipt("Accepted")}>
                 <Check className="h-4 w-4 mr-1" />
                 Accept Receipt
               </Button>

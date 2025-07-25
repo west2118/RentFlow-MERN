@@ -92,7 +92,6 @@ export function LandlordTenant() {
                 <TableHead>Rent Amount</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead>Lease End</TableHead>
-                <TableHead>Contact</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>

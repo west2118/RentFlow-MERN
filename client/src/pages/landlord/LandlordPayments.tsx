@@ -20,7 +20,7 @@ export function LandlordPayments() {
   const totalDue = data
     ?.filter((item) => item.status === "Pending")
     .reduce((accu, curr) => accu + curr.amount, 0);
-  const totalUnits = data?.length;
+  const totalUnits = data?.filter((item) => item.status === "Pending").length;
 
   const totalPaid = data
     ?.filter((item) => item.status === "Paid")
