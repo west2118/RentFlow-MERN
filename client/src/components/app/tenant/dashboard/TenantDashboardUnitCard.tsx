@@ -8,9 +8,12 @@ import {
 } from "@/components/ui/card";
 import type { UnitType } from "@/types/unitTypes";
 import { Home } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
+import { UnitDetailsModal } from "../../UnitDetailsModal";
 
 const TenantDashboardUnitCard = ({ unit }: { unit: UnitType }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -28,10 +31,21 @@ const TenantDashboardUnitCard = ({ unit }: { unit: UnitType }) => {
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full">
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          variant="outline"
+          className="w-full">
           View Details
         </Button>
       </CardFooter>
+
+      {isModalOpen && (
+        <UnitDetailsModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          unit={unit}
+        />
+      )}
     </Card>
   );
 };

@@ -13,4 +13,8 @@ export type LeaseType = {
   updatedAt: string; // or Date
   __v: number;
   tenantUid: string;
+  lateFee: {
+    amount: number;
+    afterDays: number;
+  };
 };

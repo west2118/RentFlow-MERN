@@ -9,8 +9,12 @@ import {
 import { formatDate } from "@/constants/formatDate";
 import type { LeaseType } from "@/types/leaseTypes";
 import { FileText } from "lucide-react";
+import { useState } from "react";
+import { LeaseDetailsModal } from "../../LeaseDetailsModal";
 
 const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -28,7 +32,7 @@ const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
         </div>
         <div className="flex justify-between text-sm mb-2">
           <span className="text-muted-foreground">Monthly Rent</span>
-          <span>${lease?.rentAmount}</span>
+          <span>${lease?.rentAmount.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Payment Schedule</span>
@@ -36,10 +40,21 @@ const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full">
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          variant="outline"
+          className="w-full">
           View Lease
         </Button>
       </CardFooter>
+
+      {isModalOpen && (
+        <LeaseDetailsModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          lease={lease}
+        />
+      )}
     </Card>
   );
 };

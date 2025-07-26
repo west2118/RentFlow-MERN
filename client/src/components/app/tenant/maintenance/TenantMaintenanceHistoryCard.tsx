@@ -23,6 +23,7 @@ import { useUserStore } from "@/store/useUserStore";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import TenantMaintenanceTable from "./TenantMaintenanceTable";
 import { Loading } from "../../Loading";
+import TenantPaymentCompletedNoData from "../payments/TenantPaymentCompletedNoData";
 
 const TenantMaintenanceHistoryCard = () => {
   const token = useUserStore((state) => state.userToken);
@@ -61,27 +62,36 @@ const TenantMaintenanceHistoryCard = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.map((item) => (
-              <TenantMaintenanceTable key={item._id} item={item} />
-            ))}
+            {data.length > 0 ? (
+              data?.map((item) => (
+                <TenantMaintenanceTable key={item._id} item={item} />
+              ))
+            ) : (
+              <TenantPaymentCompletedNoData
+                numberOfSpan={5}
+                label="No maintenance request found"
+              />
+            )}
           </TableBody>
         </Table>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="text-sm text-muted-foreground">
-          Showing <span className="font-medium">1</span> to{" "}
-          <span className="font-medium">2</span> of{" "}
-          <span className="font-medium">5</span> requests
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            Previous
-          </Button>
-          <Button variant="outline" size="sm">
-            Next
-          </Button>
-        </div>
-      </CardFooter>
+      {data.length > 0 && (
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing <span className="font-medium">1</span> to{" "}
+            <span className="font-medium">2</span> of{" "}
+            <span className="font-medium">5</span> requests
+          </div>
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm">
+              Previous
+            </Button>
+            <Button variant="outline" size="sm">
+              Next
+            </Button>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };

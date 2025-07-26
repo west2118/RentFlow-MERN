@@ -22,4 +22,5 @@ export type UnitType = {
   createdAt?: string;
   updatedAt?: string;
   paymentSchedule?: string;
+  landlord?: string;
 };

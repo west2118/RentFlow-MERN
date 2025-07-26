@@ -1,13 +1,20 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import type { UnitType } from "@/types/unitTypes";
+import { FileText } from "lucide-react";
+import { useState } from "react";
+import { UnitDetailsModal } from "../../UnitDetailsModal";
 
 const TenantUnitDetailsCards = ({ unit }: { unit: UnitType }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   return (
     <Card>
       <CardHeader>
@@ -33,6 +40,20 @@ const TenantUnitDetailsCards = ({ unit }: { unit: UnitType }) => {
           <span className="text-end">{unit?.amenities.join(", ")}</span>
         </div>
       </CardContent>
+      <CardFooter className="flex text-end">
+        <Button onClick={() => setIsModalOpen(true)} variant="outline">
+          <FileText className="h-4 w-4 mr-2" />
+          View Unit Details
+        </Button>
+      </CardFooter>
+
+      {isModalOpen && (
+        <UnitDetailsModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          unit={unit}
+        />
+      )}
     </Card>
   );
 };

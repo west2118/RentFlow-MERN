@@ -10,8 +10,6 @@ const HomeLayout = () => {
   const [checkRole, setCheckRole] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!userInfo) return;
-
     if (userInfo?.role === "tenant") {
       navigate("/tenant");
     } else if (userInfo?.role === "landlord") {
@@ -21,7 +19,7 @@ const HomeLayout = () => {
     }
   }, [userInfo, navigate]);
 
-  if (!userInfo || checkRole) return <Loading />;
+  if (checkRole) return <Loading />;
 
   return (
     <div>

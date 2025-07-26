@@ -31,6 +31,7 @@ import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { toast } from "react-toastify";
 import { LazyImage } from "./LazyImage";
+import DataLoading from "./DataLoading";
 
 type ReceiptModalProps = {
   isModalOpen: true;
@@ -40,8 +41,8 @@ type ReceiptModalProps = {
 
 export function ReceiptModal({
   isModalOpen,
-  payment,
   isCloseModal,
+  payment,
 }: ReceiptModalProps) {
   const userUid = useUserStore((state) => state.user?.uid);
   const token = useUserStore((state) => state.userToken);
@@ -154,14 +155,7 @@ export function ReceiptModal({
 
         {/* Modal Content */}
         {loading ? (
-          // Loading State
-          <div className="flex items-center justify-center h-40">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded-full animate-bounce bg-primary" />
-              <div className="w-4 h-4 rounded-full animate-bounce bg-primary [animation-delay:.2s]" />
-              <div className="w-4 h-4 rounded-full animate-bounce bg-primary [animation-delay:.4s]" />
-            </div>
-          </div>
+          <DataLoading />
         ) : !data ? (
           <Card className="flex items-center justify-center h-40">
             <div className="text-center space-y-1">

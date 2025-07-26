@@ -7,17 +7,20 @@ const useFetchData = <T extends Record<string, any>>(
   deps: any[] = []
 ) => {
   const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!url || !token) return;
+    if (!url || !token) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
 
     const controller = new AbortController();
 
     const fetchData = async () => {
-      setLoading(true);
-
       try {
         const response = await axios.get(url, {
           headers: {

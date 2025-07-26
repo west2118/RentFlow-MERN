@@ -33,10 +33,12 @@ import type { LeaseType } from "@/types/leaseTypes";
 import TenantDashboardRentCard from "@/components/app/tenant/dashboard/TenantDashboardRentCard";
 import TenantDashboardLeaseCard from "@/components/app/tenant/dashboard/TenantDashboardLeaseCard";
 import { Loading } from "@/components/app/Loading";
+import type { PaymentType } from "@/types/paymentTypes";
 
 type DataType = {
   unit: UnitType;
   lease: LeaseType;
+  paymentMonth: PaymentType | null;
 };
 
 const TenantDashbordContent = () => {
@@ -56,7 +58,9 @@ const TenantDashbordContent = () => {
         {data?.unit && <TenantDashboardUnitCard unit={data?.unit} />}
 
         {/* Rent Status Card */}
-        <TenantDashboardRentCard />
+        {data?.paymentMonth && (
+          <TenantDashboardRentCard payment={data?.paymentMonth} />
+        )}
 
         {/* Lease Info Card */}
         {data?.lease && <TenantDashboardLeaseCard lease={data?.lease} />}

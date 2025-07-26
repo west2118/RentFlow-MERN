@@ -10,8 +10,12 @@ import {
 import { formatDate } from "@/constants/formatDate";
 import type { LeaseType } from "@/types/leaseTypes";
 import { Download, FileText } from "lucide-react";
+import { useState } from "react";
+import { LeaseDetailsModal } from "../../LeaseDetailsModal";
 
 const TenantUnitLeaseInfoCard = ({ lease }: { lease: LeaseType }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   return (
     <Card>
       <CardHeader>
@@ -45,7 +49,7 @@ const TenantUnitLeaseInfoCard = ({ lease }: { lease: LeaseType }) => {
         </div> */}
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline">
+        <Button onClick={() => setIsModalOpen(true)} variant="outline">
           <FileText className="h-4 w-4 mr-2" />
           View Full Lease
         </Button>
@@ -54,6 +58,14 @@ const TenantUnitLeaseInfoCard = ({ lease }: { lease: LeaseType }) => {
           Download PDF
         </Button>
       </CardFooter>
+
+      {isModalOpen && (
+        <LeaseDetailsModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          lease={lease}
+        />
+      )}
     </Card>
   );
 };

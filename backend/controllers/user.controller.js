@@ -110,6 +110,21 @@ const getUser = async (req, res) => {
   }
 };
 
+const getSpecificUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findOne({ uid: id });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const getLandlordTenants = async (req, res) => {
   try {
     const { uid } = req.user;
@@ -147,4 +162,4 @@ const getLandlordTenants = async (req, res) => {
   }
 };
 
-export { putUser, getUser, getLandlordTenants };
+export { putUser, getSpecificUser, getUser, getLandlordTenants };
