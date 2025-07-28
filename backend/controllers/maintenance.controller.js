@@ -164,9 +164,29 @@ const markAsInProgress = async (req, res) => {
   }
 };
 
+const getLandlordMaintenanceDashboard = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const maintenances = await Maintenance.find({ landlordUid: uid })
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    res.status(200).json(maintenances);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 export {
   postMaintenanceRequest,
   getTenantMaintenance,
   getLandlordMaintenance,
+  getLandlordMaintenanceDashboard,
   markAsInProgress,
 };

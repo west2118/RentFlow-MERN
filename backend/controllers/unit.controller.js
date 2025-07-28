@@ -117,6 +117,79 @@ const getUserUnitAndUserInfo = async (req, res) => {
   }
 };
 
+const getLandlordUnits = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findOne({ uid: id });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const units = await Unit.find({ landlordUid: id });
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    const paymentMonth = await Payment.find({
+      landlordUid: id,
+      dueDate: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    });
+
+    res.status(200).json({ units, paymentMonth });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const getTotalLastMonthUnits = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const now = new Date();
+
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    const lastMonthUnits = await Unit.countDocuments({
+      landlordUid: uid,
+      createdAt: {
+        $gte: startOfLastMonth,
+        $lte: endOfLastMonth,
+      },
+    });
+
+    res.status(200).json(lastMonthUnits);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const postUnit = async (req, res) => {
   try {
     const { uid } = req.user;
@@ -177,5 +250,7 @@ export {
   postUnit,
   getUserUnitAndLease,
   getUserUnitAndUserInfo,
+  getLandlordUnits,
+  getTotalLastMonthUnits,
   getUnitWithLeaseStatus,
 };

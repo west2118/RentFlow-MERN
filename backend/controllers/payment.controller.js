@@ -119,4 +119,72 @@ const getPayment = async (req, res) => {
   }
 };
 
-export { getPaymentMonth, getTenantPayment, getPayment };
+const getLatestPaymentUnits = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const now = new Date();
+    const start = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const end = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 7,
+        23,
+        59,
+        59,
+        999
+      )
+    );
+
+    const payments = await Payment.find({
+      dueDate: {
+        $gte: start,
+        $lte: end,
+      },
+    })
+      .sort({ dueDate: -1 })
+      .limit(3);
+
+    const getPaymentWithUserUnitLatest = [];
+
+    for (const payment of payments) {
+      const unit = await Unit.findById(payment.unitId);
+
+      let tenantName = null;
+
+      if (payment?.tenantUid) {
+        const tenant = await User.findOne({ uid: payment.tenantUid });
+        tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : null;
+      }
+
+      getPaymentWithUserUnitLatest.push({
+        ...payment.toObject(),
+        unitNumber: unit.unitNumber,
+        tenantName,
+      });
+    }
+
+    res.status(200).json(getPaymentWithUserUnitLatest);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export { getPaymentMonth, getTenantPayment, getPayment, getLatestPaymentUnits };

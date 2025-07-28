@@ -36,169 +36,88 @@ import {
   CheckCircle2,
   Clock,
 } from "lucide-react";
+import LandlordDashboardTotalUnitsCard from "@/components/app/landlord/dashboard/LandlordDashboardTotalUnitsCard";
+import LandlordDashboardTotalOccupiedCard from "@/components/app/landlord/dashboard/LandlordDashboardTotalOccupiedCard";
+import LandlordDashboardAvailableUnitCard from "@/components/app/landlord/dashboard/LandlordDashboardAvailableUnitCard";
+import LandlordDashboardTotalMonthRent from "@/components/app/landlord/dashboard/LandlordDashboardTotalMonthRent";
+import useFetchData from "@/hooks/useFetchData";
+import { useUserStore } from "@/store/useUserStore";
+import type { UnitType } from "@/types/unitTypes";
+import { Loading } from "@/components/app/Loading";
+import { useMemo } from "react";
+import type { PaymentType } from "@/types/paymentTypes";
+import LandlordDashboardMaintenanceCard from "@/components/app/landlord/dashboard/LandlordDashboardMaintenanceCard";
+import LandlordMaintenanceRentCard from "@/components/app/landlord/dashboard/LandlordMaintenanceRentCard";
+
+type DataType = {
+  units: UnitType[];
+  paymentMonth: PaymentType[];
+};
 
 const LandlordDashboardContent = () => {
+  const userUid = useUserStore((state) => state.user?.uid);
+  const token = useUserStore((state) => state.userToken);
+  const { data, loading } = useFetchData<DataType>(
+    `http://localhost:8080/api/landlord-units/${userUid}`,
+    token,
+    [userUid]
+  );
+
+  const { totalUnits, totalOccupiedUnits, totalAvailableUnits } =
+    useMemo(() => {
+      const totalUnits = data?.units.length;
+      const totalOccupiedUnits = data?.units.filter(
+        (unit) => unit.status === "Occupied"
+      ).length;
+      const totalAvailableUnits = data?.units.filter(
+        (unit) => unit.status === "Available"
+      ).length;
+
+      return {
+        totalUnits,
+        totalOccupiedUnits,
+        totalAvailableUnits,
+      };
+    }, [data]);
+
+  const totalMonthRent = data?.paymentMonth.reduce(
+    (accu, curr) => accu + curr.amount,
+    0
+  );
+
+  const percentageTotalOccupied =
+    (Number(totalOccupiedUnits) / Number(totalUnits)) * 100;
+
+  const percentageTotalAvailable =
+    (Number(totalAvailableUnits) / Number(totalUnits)) * 100;
+
+  if (loading) return <Loading />;
+
   return (
     <main className="p-6">
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Units</CardTitle>
-            <Home className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">+2 from last month</p>
-          </CardContent>
-        </Card>
+        <LandlordDashboardTotalUnitsCard totalUnits={totalUnits} />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Occupied</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">9</div>
-            <p className="text-xs text-muted-foreground">75% occupancy rate</p>
-          </CardContent>
-        </Card>
+        <LandlordDashboardTotalOccupiedCard
+          totalOccupiedUnits={totalOccupiedUnits}
+          percentageTotalOccupied={percentageTotalOccupied}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Available</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">25% vacancy rate</p>
-          </CardContent>
-        </Card>
+        <LandlordDashboardAvailableUnitCard
+          totalAvailableUnits={totalAvailableUnits}
+          percentageTotalAvailable={percentageTotalAvailable}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Rent</CardTitle>
-            <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$9,450</div>
-            <p className="text-xs text-muted-foreground">Due in 5 days</p>
-          </CardContent>
-        </Card>
+        <LandlordDashboardTotalMonthRent totalMonthRent={totalMonthRent} />
       </div>
 
       {/* Maintenance Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Maintenance Overview</CardTitle>
-            <CardDescription>
-              Recent maintenance requests and status
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <Wrench className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="font-medium">Leaky Faucet</p>
-                    <p className="text-sm text-muted-foreground">Unit 3B</p>
-                  </div>
-                </div>
-                <Badge variant="secondary">
-                  <Clock className="h-3 w-3 mr-1" />
-                  In Progress
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <Wrench className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="font-medium">Broken Window</p>
-                    <p className="text-sm text-muted-foreground">Unit 5A</p>
-                  </div>
-                </div>
-                <Badge variant="default">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Completed
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <Wrench className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="font-medium">AC Not Working</p>
-                    <p className="text-sm text-muted-foreground">Unit 2C</p>
-                  </div>
-                </div>
-                <Badge variant="destructive">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  Pending
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button variant="outline">View All Requests</Button>
-          </CardFooter>
-        </Card>
-
         {/* Upcoming Rent */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Rent Due</CardTitle>
-            <CardDescription>
-              Payments expected in the next 7 days
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Unit 4D</p>
-                  <p className="text-sm text-muted-foreground">Sarah Johnson</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">$1,200</p>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <CalendarCheck className="h-3 w-3 mr-1" />
-                    Due tomorrow
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Unit 7B</p>
-                  <p className="text-sm text-muted-foreground">Michael Chen</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">$950</p>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <CalendarCheck className="h-3 w-3 mr-1" />
-                    Due in 3 days
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Unit 1A</p>
-                  <p className="text-sm text-muted-foreground">David Wilson</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">$1,100</p>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <CalendarCheck className="h-3 w-3 mr-1" />
-                    Due in 5 days
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button variant="outline">View All Payments</Button>
-          </CardFooter>
-        </Card>
+        <LandlordDashboardMaintenanceCard />
+
+        <LandlordMaintenanceRentCard />
       </div>
     </main>
   );

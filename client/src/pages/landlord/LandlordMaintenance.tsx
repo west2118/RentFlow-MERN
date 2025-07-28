@@ -101,9 +101,13 @@ export function LandlordMaintenance() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.map((item) => (
-                <LandlordMaintenanceTable key={item._id} item={item} />
-              ))}
+              {data.length > 0 ? (
+                data?.map((item) => (
+                  <LandlordMaintenanceTable key={item._id} item={item} />
+                ))
+              ) : (
+                <p></p>
+              )}
             </TableBody>
           </Table>
         </CardContent>
