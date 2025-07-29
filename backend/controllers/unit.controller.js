@@ -246,6 +246,46 @@ const postUnit = async (req, res) => {
   }
 };
 
+const getUnit = async (req, res) => {
+  try {
+    const { uid } = req.user;
+    const { id } = req.params;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const unit = await Unit.findById(id);
+
+    res.status(200).json(unit);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const putUnit = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const unit = await Unit.findById(id);
+    if (!unit) {
+      return res.status(400).json({ message: "Unit didn't exist" });
+    }
+
+    const updatedUnit = await Unit.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Unit updated successfully!", updatedUnit });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 export {
   postUnit,
   getUserUnitAndLease,
@@ -253,4 +293,6 @@ export {
   getLandlordUnits,
   getTotalLastMonthUnits,
   getUnitWithLeaseStatus,
+  getUnit,
+  putUnit,
 };

@@ -31,13 +31,16 @@ import { useForm } from "@/hooks/useForm";
 import { unitTypes } from "@/constants/unitTypes";
 import { amenities } from "@/constants/amenities";
 import { statuses } from "@/constants/statuses";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useUserStore } from "@/store/useUserStore";
 import { toast } from "react-toastify";
 import { useImageUploader } from "@/hooks/useImageUploader";
 import ImageUpload from "@/components/app/shared/ImageUpload";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import type { UnitType } from "@/types/unitTypes";
+import { fetchData } from "@/constants/fetchData";
+import { useQuery } from "@tanstack/react-query";
 
 type FormData = {
   type: string;
@@ -46,10 +49,25 @@ type FormData = {
 
 type ImageType = "photo";
 
-export function LandlordCreateUnit() {
+const numberFields = ["floor", "size", "rentAmount", "bedrooms", "bathrooms"];
+
+type FormFields = {
+  name: string;
+  unitNumber: string;
+  floor: number;
+  notes: string;
+  bathrooms: number;
+  bedrooms: number;
+  size: number;
+  address: string;
+  rentAmount: number;
+};
+
+export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
+  const { id } = useParams();
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
-  const refData = useRef({
+  const [formFields, setFormFields] = useState<FormFields>({
     name: "",
     unitNumber: "",
     floor: 0,
@@ -65,19 +83,66 @@ export function LandlordCreateUnit() {
     status: "",
   });
   const [availableAmenities, setAvailableAmenities] = useState<string[]>([]);
-  const { images, handleImageChange, handleUploadImages } =
+  const { images, handleImageChange, handleUploadImages, setImages } =
     useImageUploader<ImageType>(["photo"]);
 
-  const numberFields = ["floor", "size", "rentAmount", "bedrooms", "bathrooms"];
+  useEffect(() => {
+    if (!token || !id) return;
 
-  const handleRefChange = (
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/unit/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = response.data;
+
+        console.log(data);
+
+        if (data) {
+          setFormFields({
+            name: data.name || "",
+            unitNumber: data.unitNumber || "",
+            floor: data.floor ?? 0,
+            notes: data.notes || "",
+            bathrooms: data.bathrooms ?? 0,
+            bedrooms: data.bedrooms ?? 0,
+            size: data.size ?? 0,
+            address: data.address || "",
+            rentAmount: data.rentAmount ?? 0,
+          });
+          setField("type", data?.type);
+          setField("status", data?.status);
+          setAvailableAmenities(data?.amenities);
+          setImages((prev) => ({
+            ...prev,
+            photo: {
+              file: data?.photos,
+              preview: data?.photos,
+            },
+          }));
+        }
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || error.message);
+      }
+    };
+
+    fetchData();
+  }, [token, id]);
+
+  const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    refData.current = {
-      ...refData.current,
+    setFormFields((prev) => ({
+      ...prev,
       [name]: numberFields.includes(name) ? Number(value) : value,
-    };
+    }));
   };
 
   const handleSubmit = async (e: any) => {
@@ -97,23 +162,41 @@ export function LandlordCreateUnit() {
 
     const fullData = {
       ...formData,
-      ...refData.current,
+      ...formFields,
       photos: imageUrls[0].url,
       amenities: availableAmenities,
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/unit",
-        {
-          ...fullData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      let response;
+
+      if (isEdit && id) {
+        response = await axios.put(
+          `http://localhost:8080/api/unit/${id}`,
+          {
+            ...fullData,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        response = await axios.post(
+          "http://localhost:8080/api/unit",
+          {
+            ...fullData,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+
+      console.log(response?.data);
 
       navigate("/landlord/units");
       toast.success(response.data.message);
@@ -147,8 +230,8 @@ export function LandlordCreateUnit() {
                   <Input
                     id="name"
                     name="name"
-                    defaultValue={refData.current.name}
-                    onChange={handleRefChange}
+                    value={formFields.name}
+                    onChange={handleInputChange}
                     placeholder="e.g. Garden View Apartment"
                     className="pl-9"
                     required
@@ -165,8 +248,8 @@ export function LandlordCreateUnit() {
                   <Input
                     id="unitNumber"
                     name="unitNumber"
-                    defaultValue={refData.current.unitNumber}
-                    onChange={handleRefChange}
+                    value={formFields.unitNumber}
+                    onChange={handleInputChange}
                     placeholder="e.g. 3B"
                     className="pl-9"
                     required
@@ -184,8 +267,8 @@ export function LandlordCreateUnit() {
                     id="floor"
                     type="number"
                     name="floor"
-                    defaultValue={refData.current.floor}
-                    onChange={handleRefChange}
+                    value={formFields.floor}
+                    onChange={handleInputChange}
                     placeholder="e.g. 2"
                     className="pl-9"
                     required
@@ -202,8 +285,8 @@ export function LandlordCreateUnit() {
                 <Textarea
                   id="notes"
                   name="notes"
-                  defaultValue={refData.current.notes}
-                  onChange={handleRefChange}
+                  value={formFields.notes}
+                  onChange={handleInputChange}
                   placeholder="Enter any additional details about the unit (amenities, special features, etc.)"
                 />
               </div>
@@ -234,8 +317,8 @@ export function LandlordCreateUnit() {
                   <Input
                     type="number"
                     name="bedrooms"
-                    defaultValue={refData.current.bedrooms}
-                    onChange={handleRefChange}
+                    value={formFields.bedrooms}
+                    onChange={handleInputChange}
                     id="bedrooms"
                     placeholder="e.g. 2"
                     min={0}
@@ -246,8 +329,8 @@ export function LandlordCreateUnit() {
                   <Input
                     type="number"
                     name="bathrooms"
-                    defaultValue={refData.current.bathrooms}
-                    onChange={handleRefChange}
+                    value={formFields.bathrooms}
+                    onChange={handleInputChange}
                     id="bathrooms"
                     placeholder="e.g. 1"
                     min={0}
@@ -280,8 +363,8 @@ export function LandlordCreateUnit() {
                     id="size"
                     type="number"
                     name="size"
-                    defaultValue={refData.current.size}
-                    onChange={handleRefChange}
+                    value={formFields.size}
+                    onChange={handleInputChange}
                     placeholder="e.g. 750"
                     className="pl-9"
                     required
@@ -298,8 +381,8 @@ export function LandlordCreateUnit() {
                   <Input
                     id="address"
                     name="address"
-                    defaultValue={refData.current.address}
-                    onChange={handleRefChange}
+                    value={formFields.address}
+                    onChange={handleInputChange}
                     placeholder="123 Main St, City, State ZIP"
                     className="pl-9"
                     required
@@ -317,8 +400,8 @@ export function LandlordCreateUnit() {
                     id="rentAmount"
                     type="number"
                     name="rentAmount"
-                    defaultValue={refData.current.rentAmount}
-                    onChange={handleRefChange}
+                    value={formFields.rentAmount}
+                    onChange={handleInputChange}
                     placeholder="e.g. 1200"
                     className="pl-9"
                     required
@@ -331,8 +414,7 @@ export function LandlordCreateUnit() {
                 <Select
                   value={formData.status}
                   onValueChange={(value) => setField("status", value)}
-                  required
-                  defaultValue="available">
+                  required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -378,7 +460,7 @@ export function LandlordCreateUnit() {
           <Button type="button" variant="outline">
             Cancel
           </Button>
-          <Button type="submit">Create Unit</Button>
+          <Button type="submit">{isEdit ? "Update" : "Create"} Unit</Button>
         </CardFooter>
       </Card>
     </form>

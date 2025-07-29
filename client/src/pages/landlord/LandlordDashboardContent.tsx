@@ -85,6 +85,8 @@ const LandlordDashboardContent = () => {
     0
   );
 
+  const totalUnitsInPayment = data?.paymentMonth.length;
+
   const percentageTotalOccupied =
     (Number(totalOccupiedUnits) / Number(totalUnits)) * 100;
 
@@ -109,7 +111,10 @@ const LandlordDashboardContent = () => {
           percentageTotalAvailable={percentageTotalAvailable}
         />
 
-        <LandlordDashboardTotalMonthRent totalMonthRent={totalMonthRent} />
+        <LandlordDashboardTotalMonthRent
+          totalMonthRent={totalMonthRent}
+          totalUnitsInPayment={totalUnitsInPayment}
+        />
       </div>
 
       {/* Maintenance Overview */}

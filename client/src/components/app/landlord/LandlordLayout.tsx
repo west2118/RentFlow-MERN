@@ -6,7 +6,7 @@ import LayoutHeader from "../LayoutHeader";
 
 export default function LandlordLayout() {
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
+    <div className="min-h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar Navigation */}
       <LandlordSidebar />
 

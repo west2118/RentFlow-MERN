@@ -4,8 +4,10 @@ import LandlordDashboardCardLoading from "./LandlordDashboardCardLoading";
 
 const LandlordDashboardTotalMonthRent = ({
   totalMonthRent,
+  totalUnitsInPayment,
 }: {
   totalMonthRent: number | undefined;
+  totalUnitsInPayment: number | undefined;
 }) => {
   return (
     <Card>
@@ -19,7 +21,9 @@ const LandlordDashboardTotalMonthRent = ({
             <div className="text-2xl font-bold">
               ${totalMonthRent.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">Due in 5 days</p>
+            <p className="text-xs text-muted-foreground">
+              In {totalUnitsInPayment} units
+            </p>
           </>
         ) : (
           <LandlordDashboardCardLoading />

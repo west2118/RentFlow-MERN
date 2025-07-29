@@ -17,11 +17,21 @@ import {
   MoreVertical,
   Ruler,
   User,
+  Pencil,
+  Trash2,
+  Eye,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { InviteTenantModal } from "./InviteTenantModal";
 import { formatDate } from "@/constants/formatDate";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { UnitDetailsModal } from "../UnitDetailsModal";
 
 type LandlordUnitCardProps = {
   item: UnitType;
@@ -30,6 +40,7 @@ type LandlordUnitCardProps = {
 const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isUnitModalOpen, setIsUnitModalOpen] = useState<boolean>(false);
 
   return (
     <Card>
@@ -52,48 +63,43 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center text-sm">
-          <Home className="h-4 w-4 mr-2 text-muted-foreground" />
-          {item.address}
+        <div className="flex items-start text-sm gap-2">
+          <Home className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+          <span className="flex-1 break-words">{item.address}</span>
         </div>
+
         {item.status === "Available" ? (
           <>
-            <div className="flex items-center text-sm">
-              <CircleDollarSign className="h-4 w-4 mr-2 text-muted-foreground" />
-              ${item?.rentAmount}/month
+            <div className="flex items-start text-sm gap-2">
+              <CircleDollarSign className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <span className="flex-1">${item?.rentAmount}/month</span>
             </div>
-            <div className="flex items-center text-sm">
-              <Ruler className="h-4 w-4 mr-2 text-muted-foreground" />
-              Size: {item.size} sqm
+            <div className="flex items-start text-sm gap-2">
+              <Ruler className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <span className="flex-1">Size: {item.size} sqm</span>
             </div>
           </>
         ) : (
           <>
-            <div className="flex items-center text-sm">
-              <User className="h-4 w-4 mr-2 text-muted-foreground" />
-              {item.tenantName}
+            <div className="flex items-start text-sm gap-2">
+              <User className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <span className="flex-1 break-words">{item.tenantName}</span>
             </div>
-            <div className="flex items-center text-sm">
-              <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-              Lease ends: {item?.leaseEnd ? formatDate(item?.leaseEnd) : null}
+            <div className="flex items-start text-sm gap-2">
+              <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <span className="flex-1">
+                Lease ends: {item?.leaseEnd ? formatDate(item?.leaseEnd) : null}
+              </span>
             </div>
           </>
         )}
       </CardContent>
-      <CardFooter
-        className={`flex ${
-          item.status === "Occupied" ? "justify-between" : "justify-end"
-        }`}>
+      <CardFooter className="mt-auto flex justify-between">
         {item?.status === "Occupied" ? (
-          <>
-            <Button variant="outline" size="sm">
-              <FileText className="h-4 w-4 mr-2" />
-              View Lease
-            </Button>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </>
+          <Button variant="outline" size="sm">
+            <FileText className="h-4 w-4 mr-2" />
+            View Lease
+          </Button>
         ) : item?.hasLease ? (
           <Button onClick={() => setIsModalOpen(true)} size="sm">
             <User className="h-4 w-4 mr-2" />
@@ -108,6 +114,28 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
             Add Lease
           </Button>
         )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setIsUnitModalOpen(true)}>
+              <Eye className="mr-1 h-4 w-4" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => navigate(`/landlord/unit/edit-unit/${item?._id}`)}>
+              <Pencil className="mr-1 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Trash2 className="mr-1 h-4 w-4 text-red-500" />
+              <span className="text-red-500">Delete</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardFooter>
 
       {isModalOpen && (
@@ -115,6 +143,14 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
           isModalOpen={isModalOpen}
           isCloseModal={() => setIsModalOpen(false)}
           unitId={item._id}
+        />
+      )}
+
+      {isUnitModalOpen && (
+        <UnitDetailsModal
+          isModalOpen={isUnitModalOpen}
+          isCloseModal={() => setIsUnitModalOpen(false)}
+          unit={item}
         />
       )}
     </Card>

@@ -46,7 +46,14 @@ const router = createBrowserRouter(
       <Route path="/landlord" element={<LandlordLayout />}>
         <Route index element={<LandlordDashboardContent />} />
         <Route path="units" element={<LandlordUnits />} />
-        <Route path="unit/create" element={<LandlordCreateUnit />} />
+        <Route
+          path="unit/create"
+          element={<LandlordCreateUnit isEdit={false} />}
+        />
+        <Route
+          path="unit/edit-unit/:id"
+          element={<LandlordCreateUnit isEdit={true} />}
+        />
         <Route path="tenants" element={<LandlordTenant />} />
         <Route path="maintenance" element={<LandlordMaintenance />} />
         <Route path="payments" element={<LandlordPayments />} />

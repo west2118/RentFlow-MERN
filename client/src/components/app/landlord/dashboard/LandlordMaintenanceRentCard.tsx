@@ -15,6 +15,8 @@ import { CalendarCheck } from "lucide-react";
 import LandlordDashboardPaymentLatest from "./LandlordDashboardPaymentLatest";
 import type { PaymentType } from "@/types/paymentTypes";
 import { useNavigate } from "react-router-dom";
+import LandlordDashboardPaymentLoading from "./LandlordDashboardPaymentLoading";
+import NoDataFoundCard from "../NoDataFoundCard";
 
 const LandlordMaintenanceRentCard = () => {
   const navigate = useNavigate();
@@ -36,15 +38,25 @@ const LandlordMaintenanceRentCard = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {data?.map((payment) => (
-            <LandlordDashboardPaymentLatest
-              key={payment._id}
-              payment={payment}
-            />
-          ))}
+          {isLoading ? (
+            <>
+              {[...Array(3)].map((_, index) => (
+                <LandlordDashboardPaymentLoading key={index} />
+              ))}
+            </>
+          ) : data && data.length > 0 ? (
+            data?.map((payment) => (
+              <LandlordDashboardPaymentLatest
+                key={payment._id}
+                payment={payment}
+              />
+            ))
+          ) : (
+            <NoDataFoundCard label="No maintenance records found" />
+          )}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end">
+      <CardFooter className="mt-auto flex justify-end">
         <Button
           onClick={() => navigate("/landlord/payments")}
           variant="outline">

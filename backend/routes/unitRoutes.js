@@ -6,6 +6,8 @@ import {
   getLandlordUnits,
   getTotalLastMonthUnits,
   getUnitWithLeaseStatus,
+  getUnit,
+  putUnit,
 } from "../controllers/unit.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -17,5 +19,7 @@ router.get("/unit-user/:id", verifyToken, getUserUnitAndUserInfo);
 router.get("/unit-lease", verifyToken, getUserUnitAndLease);
 router.get("/last-month-count", verifyToken, getTotalLastMonthUnits);
 router.get("/landlord-units/:id", verifyToken, getLandlordUnits);
+router.get("/unit/:id", verifyToken, getUnit);
+router.put("/unit/:id", verifyToken, putUnit);
 
 export default router;

@@ -22,6 +22,8 @@ import LandlordMaintenanceLatestCard from "./LandlordMaintenanceLatestCard";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import DataLoading from "../../DataLoading";
 import { useNavigate } from "react-router-dom";
+import LandlordDashboardMaintenanceLoading from "./LandlordDashboardMaintenanceLoading";
+import NoDataFoundCard from "../NoDataFoundCard";
 
 const LandlordDashboardMaintenanceCard = () => {
   const navigate = useNavigate();
@@ -29,9 +31,14 @@ const LandlordDashboardMaintenanceCard = () => {
 
   const { data, isLoading } = useQuery<MaintenanceType[]>({
     queryKey: ["latest-maintenance"],
-    queryFn: fetchData("http://localhost:8080/api/last-month-count", token),
+    queryFn: fetchData(
+      "http://localhost:8080/api/landlord-latest-maintenance",
+      token
+    ),
     enabled: !!token,
   });
+
+  console.log(data);
 
   return (
     <Card className="lg:col-span-2">
@@ -43,7 +50,11 @@ const LandlordDashboardMaintenanceCard = () => {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <DataLoading />
+          <div className="space-y-4">
+            {[...Array(3)].map((_, index) => (
+              <LandlordDashboardMaintenanceLoading key={index} />
+            ))}
+          </div>
         ) : data && data.length > 0 ? (
           <div className="space-y-4">
             {data.map((maintenance) => (
@@ -54,14 +65,11 @@ const LandlordDashboardMaintenanceCard = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-50 text-center text-muted-foreground">
-            <FileWarning className="w-8 h-8 mb-2" />
-            <p className="text-sm">No maintenance records found</p>
-          </div>
+          <NoDataFoundCard label="No maintenance records found" />
         )}
       </CardContent>
       {Array.isArray(data) && data.length > 0 && (
-        <CardFooter className="flex justify-end">
+        <CardFooter className="mt-auto flex justify-end">
           <Button
             onClick={() => navigate("/landlord/maintenance")}
             variant="outline">

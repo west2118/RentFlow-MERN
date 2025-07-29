@@ -70,5 +70,5 @@ export const useImageUploader = <T extends string>(initialTypes: T[]) => {
     return uploadedUrls;
   };
 
-  return { images, handleImageChange, handleUploadImages };
+  return { images, handleImageChange, handleUploadImages, setImages };
 };

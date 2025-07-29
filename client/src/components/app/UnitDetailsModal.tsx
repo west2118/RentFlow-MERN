@@ -40,7 +40,7 @@ export function UnitDetailsModal({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!unit?.tenantUid || !token) return;
+    if (!token || !unit?.tenantUid) return;
 
     const fetchData = async () => {
       setLoading(true);
@@ -65,6 +65,12 @@ export function UnitDetailsModal({
 
     fetchData();
   }, [unit?.tenantUid, token]);
+
+  useEffect(() => {
+    if (!unit.tenantUid) {
+      setLoading(false);
+    }
+  }, [unit?.tenantUid]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -222,7 +228,7 @@ export function UnitDetailsModal({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="font-medium text-end">{unit?.address}</p>
+                <p className="font-medium">{unit?.address}</p>
               </CardContent>
             </Card>
 
