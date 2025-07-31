@@ -9,16 +9,28 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/constants/fetchData";
 import LandlordNoUnitsFound from "@/components/app/landlord/units/LandlordNoUnitsFound";
 import LandlordUnitCardSkeleton from "@/components/app/landlord/units/LandlordUnitCardSkeleton";
+import { useState } from "react";
+import { InviteTenantModal } from "@/components/app/landlord/InviteTenantModal";
+import { UnitDetailsModal } from "@/components/app/UnitDetailsModal";
 
 export function LandlordUnits() {
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
+  const [isModalOpenType, setIsModalOpenType] = useState<
+    "invite" | "details" | null
+  >(null);
+  const [selectedUnit, setSelectedUnit] = useState<UnitType | null>(null);
 
   const { data, isLoading } = useQuery<UnitType[]>({
     queryKey: ["units"],
     queryFn: fetchData("http://localhost:8080/api/unit", token),
     enabled: !!token,
   });
+
+  const handleOpenModal = (unit: UnitType, type: "invite" | "details") => {
+    setIsModalOpenType(type);
+    setSelectedUnit(unit);
+  };
 
   return (
     <main className="p-6">
@@ -47,7 +59,11 @@ export function LandlordUnits() {
               </>
             ) : data && data?.length > 0 ? (
               data?.map((item) => (
-                <LandlordUnitCard key={item._id} item={item} />
+                <LandlordUnitCard
+                  key={item._id}
+                  item={item}
+                  handleOpenModal={handleOpenModal}
+                />
               ))
             ) : (
               <LandlordNoUnitsFound
@@ -70,7 +86,13 @@ export function LandlordUnits() {
               data?.filter((item) => item.status === "Available").length > 0 ? (
               data
                 ?.filter((item) => item.status === "Available")
-                .map((item) => <LandlordUnitCard key={item._id} item={item} />)
+                .map((item) => (
+                  <LandlordUnitCard
+                    key={item._id}
+                    item={item}
+                    handleOpenModal={handleOpenModal}
+                  />
+                ))
             ) : (
               <LandlordNoUnitsFound label="No available units at the moment. All units are currently occupied." />
             )}
@@ -89,13 +111,35 @@ export function LandlordUnits() {
               data?.filter((item) => item.status === "Occupied").length > 0 ? (
               data
                 ?.filter((item) => item.status === "Occupied")
-                .map((item) => <LandlordUnitCard key={item._id} item={item} />)
+                .map((item) => (
+                  <LandlordUnitCard
+                    key={item._id}
+                    item={item}
+                    handleOpenModal={handleOpenModal}
+                  />
+                ))
             ) : (
               <LandlordNoUnitsFound label="No occupied units right now. All units are currently available." />
             )}
           </div>
         </TabsContent>
       </Tabs>
+
+      {selectedUnit && isModalOpenType === "invite" && (
+        <InviteTenantModal
+          isModalOpen
+          isCloseModal={() => setIsModalOpenType(null)}
+          unitId={selectedUnit._id}
+        />
+      )}
+
+      {selectedUnit && isModalOpenType === "details" && (
+        <UnitDetailsModal
+          isModalOpen
+          isCloseModal={() => setIsModalOpenType(null)}
+          unit={selectedUnit}
+        />
+      )}
     </main>
   );
 }

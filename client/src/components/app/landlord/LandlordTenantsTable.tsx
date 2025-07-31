@@ -10,14 +10,25 @@ import {
   DollarSign,
   Calendar,
   Building,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { UnitType } from "@/types/unitTypes";
 import { formatDate } from "@/constants/formatDate";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const LandlordTenantsTable = ({ item }: { item: UnitType }) => {
-  console.log(item);
-
+const LandlordTenantsTable = ({
+  item,
+  onViewLease,
+}: {
+  item: UnitType;
+  onViewLease: () => void;
+}) => {
   return (
     <TableRow>
       <TableCell className="font-medium">
@@ -38,7 +49,7 @@ const LandlordTenantsTable = ({ item }: { item: UnitType }) => {
 
       <TableCell>
         <div className="flex items-center">
-          ${item?.rentAmount} - {item?.paymentSchedule}
+          ${item?.lease?.rentAmount} - {item?.lease?.paymentSchedule}
         </div>
       </TableCell>
 
@@ -48,7 +59,7 @@ const LandlordTenantsTable = ({ item }: { item: UnitType }) => {
 
       <TableCell>
         <div className="flex items-center">
-          {item?.leaseEnd ? formatDate(item?.leaseEnd) : null}
+          {item?.lease?.leaseEnd ? formatDate(item?.lease?.leaseEnd) : null}
         </div>
       </TableCell>
 
@@ -60,9 +71,19 @@ const LandlordTenantsTable = ({ item }: { item: UnitType }) => {
       </TableCell>
 
       <TableCell className="text-right">
-        <Button variant="ghost" size="icon">
-          <MoreVertical className="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onViewLease}>
+              <Eye className="mr-1 h-4 w-4" />
+              View Lease
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );

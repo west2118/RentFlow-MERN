@@ -98,9 +98,37 @@ const postLease = async (req, res) => {
 
     res.status(200).json({ message: "Lease created successfully!", newLease });
   } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const getLease = async (req, res) => {
+  try {
+    const { uid } = req.user;
+    const { id } = req.params;
+
+    console.log(id);
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const tenant = await User.findOne({ uid: id });
+    if (!tenant) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const lease = await Lease.findOne({
+      tenantUid: id,
+      isActive: true,
+    });
+
+    res.status(200).json(lease);
+  } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-export { postLease };
+export { postLease, getLease };

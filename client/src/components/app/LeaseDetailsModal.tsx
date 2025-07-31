@@ -32,7 +32,7 @@ import DataLoading from "./DataLoading";
 type LeaseDetailsModalProps = {
   isModalOpen: boolean;
   isCloseModal: () => void;
-  lease: LeaseType;
+  lease: LeaseType | null;
 };
 
 type DataType = {
@@ -123,10 +123,10 @@ export function LeaseDetailsModal({
             <div className="flex justify-between items-center">
               <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                {lease?.isActive ? "Actice" : "Not Active"} Lease
+                {lease?.isActive ? "Active" : "Not Active"} Lease
               </div>
               <div className="text-sm text-muted-foreground">
-                Created: {formatDate(lease?.createdAt)}
+                Created: {formatDate(lease?.createdAt!)}
               </div>
             </div>
 
@@ -247,13 +247,13 @@ export function LeaseDetailsModal({
                           Start Date
                         </span>
                         <span className="font-medium text-end">
-                          {formatDate(lease?.leaseStart)}
+                          {formatDate(lease?.leaseStart!)}
                         </span>
                       </div>
                       <div className="flex justify-between mt-2">
                         <span className="text-muted-foreground">End Date</span>
                         <span className="font-medium text-end">
-                          {formatDate(lease?.leaseEnd)}
+                          {formatDate(lease?.leaseEnd!)}
                         </span>
                       </div>
                     </div>

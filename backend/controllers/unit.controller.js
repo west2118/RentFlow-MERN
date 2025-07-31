@@ -119,14 +119,14 @@ const getUserUnitAndUserInfo = async (req, res) => {
 
 const getLandlordUnits = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { uid } = req.user;
 
-    const user = await User.findOne({ uid: id });
+    const user = await User.findOne({ uid });
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const units = await Unit.find({ landlordUid: id });
+    const units = await Unit.find({ landlordUid: uid });
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -141,7 +141,7 @@ const getLandlordUnits = async (req, res) => {
     );
 
     const paymentMonth = await Payment.find({
-      landlordUid: id,
+      landlordUid: uid,
       dueDate: {
         $gte: startOfMonth,
         $lte: endOfMonth,

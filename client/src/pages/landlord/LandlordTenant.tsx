@@ -47,15 +47,34 @@ import { useUserStore } from "@/store/useUserStore";
 import LandlordTenantsTable from "@/components/app/landlord/LandlordTenantsTable";
 import type { UnitType } from "@/types/unitTypes";
 import { Loading } from "@/components/app/Loading";
+import { useState } from "react";
+import type { LeaseType } from "@/types/leaseTypes";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
+import { LeaseDetailsModal } from "@/components/app/LeaseDetailsModal";
 
 export function LandlordTenant() {
   const token = useUserStore((state) => state.userToken);
-  const { data, error, loading } = useFetchData<UnitType[]>(
-    "http://localhost:8080/api/landlord-tenants",
-    token
-  );
+  const [selectedLease, setSelectedLease] = useState<LeaseType | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  if (!data || loading) {
+  const { data, isLoading } = useQuery<UnitType[]>({
+    queryKey: ["unit"],
+    queryFn: fetchData(`http://localhost:8080/api/landlord-tenants`, token),
+    enabled: !!token,
+  });
+
+  const openModal = (lease: LeaseType) => {
+    setSelectedLease(lease);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedLease(null);
+    setIsModalOpen(false);
+  };
+
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -63,10 +82,6 @@ export function LandlordTenant() {
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Tenant Management</h2>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Tenant
-        </Button>
       </div>
       <Card>
         <CardHeader>
@@ -98,7 +113,11 @@ export function LandlordTenant() {
             </TableHeader>
             <TableBody>
               {data?.map((item) => (
-                <LandlordTenantsTable key={item._id} item={item} />
+                <LandlordTenantsTable
+                  key={item._id}
+                  onViewLease={() => openModal(item?.lease!)}
+                  item={item}
+                />
               ))}
             </TableBody>
           </Table>
@@ -119,6 +138,14 @@ export function LandlordTenant() {
           </div>
         </CardFooter>
       </Card>
+
+      {isModalOpen && (
+        <LeaseDetailsModal
+          isModalOpen={isModalOpen}
+          isCloseModal={closeModal}
+          lease={selectedLease}
+        />
+      )}
     </main>
   );
 }

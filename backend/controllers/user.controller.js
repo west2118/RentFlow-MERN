@@ -139,19 +139,19 @@ const getLandlordTenants = async (req, res) => {
     const getTenants = [];
 
     for (const unit of units) {
-      const activeLease = await Lease.findOne({
-        unitId: unit._id,
-        isActive: true,
-      });
-
-      const tenant = await User.findOne({ uid: unit.tenantUid });
+      const [activeLease, tenant] = await Promise.all([
+        Lease.findOne({
+          unitId: unit._id,
+          isActive: true,
+        }),
+        User.findOne({ uid: unit.tenantUid }),
+      ]);
 
       getTenants.push({
         ...unit.toObject(),
-        leaseEnd: activeLease?.leaseEnd || null,
-        paymentSchedule: activeLease?.paymentSchedule || null,
         tenantName: `${tenant.firstName} ${tenant.lastName}` || null,
         tenantGmail: tenant.email || null,
+        lease: activeLease || null,
       });
     }
 

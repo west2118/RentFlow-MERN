@@ -20,7 +20,7 @@ const LandlordDashboardAvailableUnitCard = ({
           <>
             <div className="text-2xl font-bold">{totalAvailableUnits}</div>
             <p className="text-xs text-muted-foreground">
-              {percentageTotalAvailable}% vacancy rate
+              {percentageTotalAvailable.toFixed(2)}% vacancy rate
             </p>
           </>
         ) : (

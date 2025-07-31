@@ -11,4 +11,6 @@ export type PaymentType = {
   method?: string;
   unitNumber?: string;
   tenantName?: string;
+  lateFee?: number;
+  totalAmount?: number;
 };

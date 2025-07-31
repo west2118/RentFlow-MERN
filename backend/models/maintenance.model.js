@@ -7,6 +7,10 @@ const MaintenanceSchema = mongoose.Schema(
     urgencyLevel: { type: String, required: true },
     description: { type: String, required: true },
     photo: { type: String, required: true },
+    unitNumber: { type: String, required: true },
+    tenantName: { type: String, required: true },
+    status: { type: String, default: "Pending" },
+    techNotes: { type: String },
     unitId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Unit",
@@ -14,10 +18,6 @@ const MaintenanceSchema = mongoose.Schema(
     },
     tenantUid: { type: String, required: true },
     landlordUid: { type: String, required: true },
-    tenantName: { type: String, required: true },
-    unitNumber: { type: String, required: true },
-    status: { type: String, default: "Pending" },
-    techNotes: { type: String },
   },
   { timestamps: true }
 );

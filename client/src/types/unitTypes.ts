@@ -1,3 +1,5 @@
+import type { LeaseType } from "./leaseTypes";
+
 export type UnitType = {
   _id?: string; // optional if not yet saved
   name: string;
@@ -23,4 +25,5 @@ export type UnitType = {
   updatedAt?: string;
   paymentSchedule?: string;
   landlord?: string;
+  lease?: LeaseType;
 };

@@ -31,6 +31,7 @@ import { LandlordCreateUnit } from "./pages/landlord/LandlordCreateUnit";
 import { LandlordCreateLease } from "./pages/landlord/LandlordCreateLease";
 import TenantCreateMaintenanceRequest from "./pages/tenant/TenantCreateMaintenanceRequest";
 import { TenantMakePayment } from "./pages/tenant/TenantMakePayment";
+import { LandlordPaymentHistory } from "./pages/landlord/LandlordPaymentHistory";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -60,6 +61,7 @@ const router = createBrowserRouter(
         <Route path="documents" element={<LandlordDocuments />} />
         <Route path="settings" element={<LandlordSettings />} />
         <Route path="lease/create/:id" element={<LandlordCreateLease />} />
+        <Route path="payment-history" element={<LandlordPaymentHistory />} />
       </Route>
 
       <Route path="/tenant" element={<TenantLayout />}>

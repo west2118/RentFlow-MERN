@@ -21,7 +21,7 @@ const LandlordDashboardTotalOccupiedCard = ({
             <>
               <div className="text-2xl font-bold">{totalOccupiedUnits}</div>
               <p className="text-xs text-muted-foreground">
-                {percentageTotalOccupied}% occupancy rate
+                {percentageTotalOccupied.toFixed(2)}% occupancy rate
               </p>
             </>
           ) : (

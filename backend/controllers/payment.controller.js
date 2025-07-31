@@ -1,3 +1,4 @@
+import Lease from "../models/lease.model.js";
 import Payment from "../models/payment.model.js";
 import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
@@ -10,8 +11,6 @@ const getPaymentMonth = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
-
-    console.log(uid);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -37,6 +36,7 @@ const getPaymentMonth = async (req, res) => {
 
     for (const payment of payments) {
       const unit = await Unit.findById(payment.unitId);
+      const lease = await Lease.findById(payment.leaseId);
 
       let tenantName = null;
 
@@ -45,10 +45,27 @@ const getPaymentMonth = async (req, res) => {
         tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : null;
       }
 
+      let totalAmount = payment.amount;
+      let appliedLateFee = 0;
+
+      if (payment.status === "Pending" && payment.dueDate) {
+        const dueDate = new Date(payment.dueDate);
+        const gracePeriod = new Date(dueDate);
+        gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+        if (now > gracePeriod) {
+          appliedLateFee = lease.lateFee.amount;
+          totalAmount += appliedLateFee;
+          payment.status = "Overdue";
+        }
+      }
+
       getPaymentWithUserUnit.push({
         ...payment.toObject(),
         unitNumber: unit.unitNumber,
         tenantName,
+        lateFee: appliedLateFee,
+        totalAmount,
       });
     }
 

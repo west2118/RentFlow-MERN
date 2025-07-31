@@ -35,12 +35,11 @@ import { UnitDetailsModal } from "../UnitDetailsModal";
 
 type LandlordUnitCardProps = {
   item: UnitType;
+  handleOpenModal: (unit: UnitType, type: "invite" | "details") => void;
 };
 
-const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
+const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isUnitModalOpen, setIsUnitModalOpen] = useState<boolean>(false);
 
   return (
     <Card>
@@ -101,7 +100,7 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
             View Lease
           </Button>
         ) : item?.hasLease ? (
-          <Button onClick={() => setIsModalOpen(true)} size="sm">
+          <Button onClick={() => handleOpenModal(item, "invite")} size="sm">
             <User className="h-4 w-4 mr-2" />
             Assign Tenant
           </Button>
@@ -121,7 +120,7 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setIsUnitModalOpen(true)}>
+            <DropdownMenuItem onClick={() => handleOpenModal(item, "details")}>
               <Eye className="mr-1 h-4 w-4" />
               View Details
             </DropdownMenuItem>
@@ -137,22 +136,6 @@ const LandlordUnitCard = ({ item }: LandlordUnitCardProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </CardFooter>
-
-      {isModalOpen && (
-        <InviteTenantModal
-          isModalOpen={isModalOpen}
-          isCloseModal={() => setIsModalOpen(false)}
-          unitId={item._id}
-        />
-      )}
-
-      {isUnitModalOpen && (
-        <UnitDetailsModal
-          isModalOpen={isUnitModalOpen}
-          isCloseModal={() => setIsUnitModalOpen(false)}
-          unit={item}
-        />
-      )}
     </Card>
   );
 };

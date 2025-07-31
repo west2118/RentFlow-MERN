@@ -25,6 +25,7 @@ import {
   MapPin,
   DollarSign,
   CheckCircle2,
+  Loader,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "@/hooks/useForm";
@@ -41,6 +42,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { UnitType } from "@/types/unitTypes";
 import { fetchData } from "@/constants/fetchData";
 import { useQuery } from "@tanstack/react-query";
+import DataLoading from "@/components/app/DataLoading";
 
 type FormData = {
   type: string;
@@ -67,6 +69,8 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false);
   const [formFields, setFormFields] = useState<FormFields>({
     name: "",
     unitNumber: "",
@@ -90,6 +94,8 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
     if (!token || !id) return;
 
     const fetchData = async () => {
+      setIsLoading(true);
+
       try {
         const response = await axios.get(
           `http://localhost:8080/api/unit/${id}`,
@@ -129,6 +135,8 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
         }
       } catch (error: any) {
         toast.error(error.response?.data?.message || error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -157,6 +165,8 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
     if (!hasAnyFile) {
       return toast.error("Please upload image.");
     }
+
+    setIsSubmitLoading(true);
 
     imageUrls = (await handleUploadImages()) ?? [];
 
@@ -202,8 +212,12 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
       toast.success(response.data.message);
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setIsSubmitLoading(false);
     }
   };
+
+  if (isLoading) return <DataLoading />;
 
   return (
     <form onSubmit={handleSubmit} className="p-6">
@@ -457,10 +471,17 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-4">
-          <Button type="button" variant="outline">
+          <Button
+            disabled={isSubmitLoading}
+            onClick={() => navigate(-1)}
+            type="button"
+            variant="outline">
             Cancel
           </Button>
-          <Button type="submit">{isEdit ? "Update" : "Create"} Unit</Button>
+          <Button type="submit">
+            {isSubmitLoading ? <Loader className="animate-spin h-5 w-5" /> : ""}
+            {isEdit ? "Update" : "Create"} Unit
+          </Button>
         </CardFooter>
       </Card>
     </form>

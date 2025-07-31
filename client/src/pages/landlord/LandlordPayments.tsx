@@ -9,8 +9,10 @@ import LandlordPaymentTotalOverdue from "@/components/app/landlord/payments/Land
 import LandlordPaymentRentDueCard from "@/components/app/landlord/payments/LandlordPaymentRentDueCard";
 import LandlordPaymentActionsCard from "@/components/app/landlord/payments/LandlordPaymentActionsCard";
 import type { PaymentType } from "@/types/paymentTypes";
+import { useNavigate } from "react-router-dom";
 
 export function LandlordPayments() {
+  const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
   const { data, loading, error } = useFetchData<PaymentType[]>(
     "http://localhost:8080/api/payments-month",
@@ -18,18 +20,20 @@ export function LandlordPayments() {
   );
 
   const totalDue = data
-    ?.filter((item) => item.status === "Pending")
-    .reduce((accu, curr) => accu + curr.amount, 0);
-  const totalUnits = data?.filter((item) => item.status === "Pending").length;
+    ?.filter((item) => item.status === "Pending" || item.status === "Overdue")
+    .reduce((accu, curr) => accu + curr.totalAmount!, 0);
+  const totalUnits = data?.filter(
+    (item) => item.status === "Pending" || item.status === "Overdue"
+  ).length;
 
   const totalPaid = data
     ?.filter((item) => item.status === "Paid")
-    .reduce((accu, curr) => accu + curr.amount, 0);
-  const totalRent = data?.reduce((accu, curr) => accu + curr.amount, 0);
+    .reduce((accu, curr) => accu + curr.totalAmount!, 0);
+  const totalRent = data?.reduce((accu, curr) => accu + curr.totalAmount!, 0);
 
   const totalOverdue = data
     ?.filter((item) => item.status === "Overdue")
-    .reduce((accu, curr) => accu + curr.amount, 0);
+    .reduce((accu, curr) => accu + curr.totalAmount!, 0);
   const totalUnitOverdue = data?.filter(
     (item) => item.status === "Overdue"
   ).length;
@@ -45,7 +49,9 @@ export function LandlordPayments() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Payments</h2>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button
+            onClick={() => navigate("/landlord/payment-history")}
+            variant="outline">
             <History className="h-4 w-4 mr-2" />
             Payment History
           </Button>

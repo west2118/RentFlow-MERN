@@ -8,14 +8,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import {
   Table,
   TableHeader,
@@ -24,36 +16,51 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Plus,
-  Search,
-  Mail,
-  Wrench,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  ChevronDown,
-  MessageSquare,
-  Home,
-  User,
-  MoreVertical,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
-import useFetchData from "@/hooks/useFetchData";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import LandlordMaintenanceTable from "@/components/app/landlord/maintenance/LandlordMaintenanceTable";
 import { Loading } from "@/components/app/Loading";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
+import { useState } from "react";
+import LandlordManageRequestModal from "@/components/app/landlord/maintenance/LandlordManageRequestModal";
+import { MaintenanceModalDetails } from "@/components/app/MaintenanceModalDetails";
 
 export function LandlordMaintenance() {
   const token = useUserStore((state) => state.userToken);
-  const { data, loading, error } = useFetchData<MaintenanceType[]>(
-    "http://localhost:8080/api/landlord-maintenance",
-    token
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalDetailsOpen, setIsModalDetailsOpen] = useState<boolean>(false);
+  const [selectedStatus, setSelectedStatus] = useState<
+    "In Progress" | "Completed" | null
+  >(null);
+  const [selectedItem, setSelectedItem] = useState<MaintenanceType | null>(
+    null
   );
 
-  if (!data || loading) {
+  const { data, isLoading } = useQuery<MaintenanceType[]>({
+    queryKey: ["landlord-maintenance"],
+    queryFn: fetchData("http://localhost:8080/api/landlord-maintenance", token),
+    enabled: !!token,
+  });
+
+  console.log("Dataaaaa: ", data);
+
+  const handleOpenModal = (
+    status: "In Progress" | "Completed",
+    item: MaintenanceType | null
+  ) => {
+    setIsModalOpen(true);
+    setSelectedStatus(status);
+    setSelectedItem(item);
+  };
+
+  const handleOpenDetailsModal = (item: MaintenanceType | null) => {
+    setIsModalDetailsOpen(true);
+    setSelectedItem(item);
+  };
+
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -61,16 +68,6 @@ export function LandlordMaintenance() {
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Maintenance Requests</h2>
-        <div className="flex space-x-2">
-          <Button variant="outline">
-            <Wrench className="h-4 w-4 mr-2" />
-            Request History
-          </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            New Request
-          </Button>
-        </div>
       </div>
 
       {/* Maintenance Requests Table */}
@@ -101,12 +98,23 @@ export function LandlordMaintenance() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.length > 0 ? (
+              {data && data.length > 0 ? (
                 data?.map((item) => (
-                  <LandlordMaintenanceTable key={item._id} item={item} />
+                  <LandlordMaintenanceTable
+                    key={item._id}
+                    item={item}
+                    handleOpenModal={handleOpenModal}
+                    handleOpenDetailsModal={handleOpenDetailsModal}
+                  />
                 ))
               ) : (
-                <p></p>
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-6 text-sm text-muted-foreground">
+                    No maintenance records found
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
@@ -127,6 +135,30 @@ export function LandlordMaintenance() {
           </div>
         </CardFooter>
       </Card>
+
+      {isModalOpen && selectedItem && selectedStatus && (
+        <LandlordManageRequestModal
+          item={selectedItem}
+          isModalOpen={isModalOpen}
+          onCloseModal={() => {
+            setIsModalOpen(false);
+            setSelectedItem(null);
+            setSelectedStatus(null);
+          }}
+          status={selectedStatus}
+        />
+      )}
+
+      {isModalDetailsOpen && (
+        <MaintenanceModalDetails
+          isModalOpen={isModalDetailsOpen}
+          onCloseModal={() => {
+            setIsModalDetailsOpen(false);
+            setSelectedItem(null);
+          }}
+          item={selectedItem}
+        />
+      )}
     </main>
   );
 }

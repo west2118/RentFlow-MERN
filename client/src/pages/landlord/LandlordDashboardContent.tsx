@@ -1,46 +1,7 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import {
-  Home,
-  LayoutGrid,
-  Users,
-  Wrench,
-  DollarSign,
-  FileText,
-  Settings,
-  Menu,
-  Bell,
-  Search,
-  User,
-  ChevronDown,
-  CircleDollarSign,
-  CalendarCheck,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-} from "lucide-react";
 import LandlordDashboardTotalUnitsCard from "@/components/app/landlord/dashboard/LandlordDashboardTotalUnitsCard";
 import LandlordDashboardTotalOccupiedCard from "@/components/app/landlord/dashboard/LandlordDashboardTotalOccupiedCard";
 import LandlordDashboardAvailableUnitCard from "@/components/app/landlord/dashboard/LandlordDashboardAvailableUnitCard";
 import LandlordDashboardTotalMonthRent from "@/components/app/landlord/dashboard/LandlordDashboardTotalMonthRent";
-import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import type { UnitType } from "@/types/unitTypes";
 import { Loading } from "@/components/app/Loading";
@@ -48,6 +9,8 @@ import { useMemo } from "react";
 import type { PaymentType } from "@/types/paymentTypes";
 import LandlordDashboardMaintenanceCard from "@/components/app/landlord/dashboard/LandlordDashboardMaintenanceCard";
 import LandlordMaintenanceRentCard from "@/components/app/landlord/dashboard/LandlordMaintenanceRentCard";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
 
 type DataType = {
   units: UnitType[];
@@ -55,13 +18,13 @@ type DataType = {
 };
 
 const LandlordDashboardContent = () => {
-  const userUid = useUserStore((state) => state.user?.uid);
   const token = useUserStore((state) => state.userToken);
-  const { data, loading } = useFetchData<DataType>(
-    `http://localhost:8080/api/landlord-units/${userUid}`,
-    token,
-    [userUid]
-  );
+
+  const { data, isLoading } = useQuery<DataType>({
+    queryKey: ["landlord-units"],
+    queryFn: fetchData("http://localhost:8080/api/landlord-units", token),
+    enabled: !!token,
+  });
 
   const { totalUnits, totalOccupiedUnits, totalAvailableUnits } =
     useMemo(() => {
@@ -93,7 +56,7 @@ const LandlordDashboardContent = () => {
   const percentageTotalAvailable =
     (Number(totalAvailableUnits) / Number(totalUnits)) * 100;
 
-  if (loading) return <Loading />;
+  if (isLoading) return <Loading />;
 
   return (
     <main className="p-6">

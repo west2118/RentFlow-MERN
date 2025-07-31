@@ -6,12 +6,12 @@ import LayoutHeader from "../LayoutHeader";
 
 export default function LandlordLayout() {
   return (
-    <div className="min-h-screen bg-gray-50 flex overflow-hidden">
+    <div className="max-h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar Navigation */}
       <LandlordSidebar />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="min-h-screen flex-1 flex flex-col">
         {/* Top Header */}
         <LayoutHeader />
 
