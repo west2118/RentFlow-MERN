@@ -1,46 +1,3 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  DollarSign,
-  CreditCard,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  History,
-  CalendarDays,
-  Download,
-  Search,
-  ChevronDown,
-  CreditCardIcon,
-} from "lucide-react";
-
-import React from "react";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import TenantPaymentCurrentDueCard from "@/components/app/tenant/payments/TenantPaymentCurrentDueCard";
 import TenantPaymentStatusCard from "@/components/app/tenant/payments/TenantPaymentStatusCard";
 import TenantPaymentMethodCard from "@/components/app/tenant/payments/TenantPaymentMethodCard";
@@ -62,6 +19,8 @@ const TenantPayment = () => {
     `http://localhost:8080/api/tenant-payment`,
     token
   );
+
+  console.log(data);
 
   if (loading || !data) return <Loading />;
 

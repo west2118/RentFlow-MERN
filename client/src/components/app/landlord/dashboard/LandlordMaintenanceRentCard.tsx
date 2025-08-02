@@ -52,7 +52,7 @@ const LandlordMaintenanceRentCard = () => {
               />
             ))
           ) : (
-            <NoDataFoundCard label="No maintenance records found" />
+            <NoDataFoundCard label="No upcoming payment records found" />
           )}
         </div>
       </CardContent>

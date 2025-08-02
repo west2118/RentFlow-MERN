@@ -4,12 +4,12 @@ import LayoutHeader from "../LayoutHeader";
 
 export function TenantLayout() {
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
+    <div className="max-h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar Navigation */}
       <TenantSidebar />
 
       {/* Main Content */}
-      <div className="max-h-screen bg-gray-50 flex overflow-hidden">
+      <div className="min-h-screen bg-gray-50 flex flex-1 flex-col">
         {/* Top Header */}
         <LayoutHeader />
 

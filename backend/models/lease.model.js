@@ -25,6 +25,13 @@ const LeaseSchema = mongoose.Schema(
       amount: { type: Number },
       afterDays: { type: Number },
     },
+    documents: [
+      {
+        name: { type: String, required: true },
+        file: { type: String, required: true },
+        size: { type: String, required: true },
+      },
+    ],
   },
   {
     timestamps: true,

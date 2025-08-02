@@ -17,6 +17,8 @@ import { ReceiptModal } from "../../ReceiptModal";
 const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
+  console.log(item);
+
   return (
     <TableRow>
       <TableCell>
@@ -37,6 +39,7 @@ const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
         <Button
           variant="default"
           size="default"
+          disabled={item?.status === "Pending"}
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2">
           <Eye className="h-4 w-4" />

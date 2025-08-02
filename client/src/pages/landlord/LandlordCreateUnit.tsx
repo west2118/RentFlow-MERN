@@ -153,9 +153,7 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
     }));
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     let imageUrls = [];
 
     const hasAnyFile = Object.values(images).some(
@@ -220,270 +218,266 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
   if (isLoading) return <DataLoading />;
 
   return (
-    <form onSubmit={handleSubmit} className="p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl flex items-center gap-2">
-            <Home className="h-6 w-6" />
-            Add New Rental Unit
-          </CardTitle>
-          <CardDescription>
-            Fill out the form to register a new rental unit in your property
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Unit Basic Information */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Unit Name</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Home className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formFields.name}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Garden View Apartment"
-                    className="pl-9"
-                    required
-                  />
+    <Card className="m-6">
+      <CardHeader>
+        <CardTitle className="text-2xl flex items-center gap-2">
+          <Home className="h-6 w-6" />
+          Add New Rental Unit
+        </CardTitle>
+        <CardDescription>
+          Fill out the form to register a new rental unit in your property
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Unit Basic Information */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Unit Name</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Home className="h-4 w-4 text-muted-foreground" />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="unitNumber">Unit Number</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Hash className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <Input
-                    id="unitNumber"
-                    name="unitNumber"
-                    value={formFields.unitNumber}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 3B"
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="floor">Floor Number</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Layers className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <Input
-                    id="floor"
-                    type="number"
-                    name="floor"
-                    value={formFields.floor}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 2"
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">
-                  <div className="flex items-center gap-2">
-                    Additional Notes
-                  </div>
-                </Label>
-                <Textarea
-                  id="notes"
-                  name="notes"
-                  value={formFields.notes}
+                <Input
+                  id="name"
+                  name="name"
+                  value={formFields.name}
                   onChange={handleInputChange}
-                  placeholder="Enter any additional details about the unit (amenities, special features, etc.)"
+                  placeholder="e.g. Garden View Apartment"
+                  className="pl-9"
+                  required
                 />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="type">Unit Type</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value) => setField("type", value)}
-                    required
-                    name="type">
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select unit type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unitTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bedrooms">Bedrooms</Label>
-                  <Input
-                    type="number"
-                    name="bedrooms"
-                    value={formFields.bedrooms}
-                    onChange={handleInputChange}
-                    id="bedrooms"
-                    placeholder="e.g. 2"
-                    min={0}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bathrooms">Bathrooms</Label>
-                  <Input
-                    type="number"
-                    name="bathrooms"
-                    value={formFields.bathrooms}
-                    onChange={handleInputChange}
-                    id="bathrooms"
-                    placeholder="e.g. 1"
-                    min={0}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <ImageUpload
-                    label="Unit Photo"
-                    imageData={images.photo}
-                    onChangeImage={handleImageChange}
-                    name="photo"
-                    width={400}
-                  />
-                </div>
               </div>
             </div>
 
-            {/* Unit Details */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="size">Size (sq ft)</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Ruler className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <Input
-                    id="size"
-                    type="number"
-                    name="size"
-                    value={formFields.size}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 750"
-                    className="pl-9"
-                    required
-                  />
+            <div className="space-y-2">
+              <Label htmlFor="unitNumber">Unit Number</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Hash className="h-4 w-4 text-muted-foreground" />
                 </div>
+                <Input
+                  id="unitNumber"
+                  name="unitNumber"
+                  value={formFields.unitNumber}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 3B"
+                  className="pl-9"
+                  required
+                />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Full Address</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <Input
-                    id="address"
-                    name="address"
-                    value={formFields.address}
-                    onChange={handleInputChange}
-                    placeholder="123 Main St, City, State ZIP"
-                    className="pl-9"
-                    required
-                  />
+            <div className="space-y-2">
+              <Label htmlFor="floor">Floor Number</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Layers className="h-4 w-4 text-muted-foreground" />
                 </div>
+                <Input
+                  id="floor"
+                  type="number"
+                  name="floor"
+                  value={formFields.floor}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 2"
+                  className="pl-9"
+                  required
+                />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="rentAmount">Monthly Rent ($)</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <Input
-                    id="rentAmount"
-                    type="number"
-                    name="rentAmount"
-                    value={formFields.rentAmount}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 1200"
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">
+                <div className="flex items-center gap-2">Additional Notes</div>
+              </Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                value={formFields.notes}
+                onChange={handleInputChange}
+                placeholder="Enter any additional details about the unit (amenities, special features, etc.)"
+              />
+            </div>
 
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="status">Current Status</Label>
+                <Label htmlFor="type">Unit Type</Label>
                 <Select
-                  value={formData.status}
-                  onValueChange={(value) => setField("status", value)}
-                  required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                  value={formData.type}
+                  onValueChange={(value) => setField("type", value)}
+                  required
+                  name="type">
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select unit type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {statuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        <div className="flex items-center gap-2">{status}</div>
+                    {unitTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-4">
-                <Label>Amenities</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {amenities.map((amenity, index) => (
-                    <div key={amenity} className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={availableAmenities.includes(amenity)}
-                        onCheckedChange={(checked) => {
-                          setAvailableAmenities((prev) =>
-                            checked
-                              ? [...prev, amenity]
-                              : prev.filter((item) => item !== amenity)
-                          );
-                        }}
-                        id={`amenity-${index}`}
-                      />
-                      <Label
-                        htmlFor={`amenity-${index}`}
-                        className="flex items-center gap-2">
-                        {amenity}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="bedrooms">Bedrooms</Label>
+                <Input
+                  type="number"
+                  name="bedrooms"
+                  value={formFields.bedrooms}
+                  onChange={handleInputChange}
+                  id="bedrooms"
+                  placeholder="e.g. 2"
+                  min={0}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bathrooms">Bathrooms</Label>
+                <Input
+                  type="number"
+                  name="bathrooms"
+                  value={formFields.bathrooms}
+                  onChange={handleInputChange}
+                  id="bathrooms"
+                  placeholder="e.g. 1"
+                  min={0}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <ImageUpload
+                  label="Unit Photo"
+                  imageData={images.photo}
+                  onChangeImage={handleImageChange}
+                  name="photo"
+                  width={400}
+                />
               </div>
             </div>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-4">
-          <Button
-            disabled={isSubmitLoading}
-            onClick={() => navigate(-1)}
-            type="button"
-            variant="outline">
-            Cancel
-          </Button>
-          <Button type="submit">
-            {isSubmitLoading ? <Loader className="animate-spin h-5 w-5" /> : ""}
-            {isEdit ? "Update" : "Create"} Unit
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
+
+          {/* Unit Details */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="size">Size (sq ft)</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Ruler className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <Input
+                  id="size"
+                  type="number"
+                  name="size"
+                  value={formFields.size}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 750"
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Full Address</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <Input
+                  id="address"
+                  name="address"
+                  value={formFields.address}
+                  onChange={handleInputChange}
+                  placeholder="123 Main St, City, State ZIP"
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rentAmount">Monthly Rent ($)</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <Input
+                  id="rentAmount"
+                  type="number"
+                  name="rentAmount"
+                  value={formFields.rentAmount}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 1200"
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Current Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setField("status", value)}
+                required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      <div className="flex items-center gap-2">{status}</div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              <Label>Amenities</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {amenities.map((amenity, index) => (
+                  <div key={amenity} className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={availableAmenities.includes(amenity)}
+                      onCheckedChange={(checked) => {
+                        setAvailableAmenities((prev) =>
+                          checked
+                            ? [...prev, amenity]
+                            : prev.filter((item) => item !== amenity)
+                        );
+                      }}
+                      id={`amenity-${index}`}
+                    />
+                    <Label
+                      htmlFor={`amenity-${index}`}
+                      className="flex items-center gap-2">
+                      {amenity}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-end gap-4">
+        <Button
+          disabled={isSubmitLoading}
+          onClick={() => navigate(-1)}
+          type="button"
+          variant="outline">
+          Cancel
+        </Button>
+        <Button type="submit" onClick={handleSubmit}>
+          {isSubmitLoading ? <Loader className="animate-spin h-5 w-5" /> : ""}
+          {isEdit ? "Update" : "Create"} Unit
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

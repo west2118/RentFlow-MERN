@@ -27,6 +27,8 @@ export function LandlordUnits() {
     enabled: !!token,
   });
 
+  console.log("DATA: ", data);
+
   const handleOpenModal = (unit: UnitType, type: "invite" | "details") => {
     setIsModalOpenType(type);
     setSelectedUnit(unit);
@@ -140,6 +142,14 @@ export function LandlordUnits() {
           unit={selectedUnit}
         />
       )}
+
+      {/* {isModalOpen && (
+        <LeaseDetailsModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          lease={lease}
+        />
+      )} */}
     </main>
   );
 }

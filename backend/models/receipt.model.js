@@ -19,7 +19,7 @@ const ReceiptSchema = mongoose.Schema(
     fileUrl: { type: String, required: true },
     transactionDate: { type: Date, required: true },
     status: { type: String, default: "Pending" },
-    notes: { type: Date },
+    notes: { type: String },
   },
   { timestamps: true }
 );

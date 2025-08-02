@@ -10,14 +10,20 @@ import LandlordPaymentRentDueCard from "@/components/app/landlord/payments/Landl
 import LandlordPaymentActionsCard from "@/components/app/landlord/payments/LandlordPaymentActionsCard";
 import type { PaymentType } from "@/types/paymentTypes";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
 
 export function LandlordPayments() {
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
-  const { data, loading, error } = useFetchData<PaymentType[]>(
-    "http://localhost:8080/api/payments-month",
-    token
-  );
+
+  const { data, isLoading } = useQuery<PaymentType[]>({
+    queryKey: ["payments-month"],
+    queryFn: fetchData("http://localhost:8080/api/payments-month", token),
+    enabled: !!token,
+  });
+
+  console.log("API data:", data);
 
   const totalDue = data
     ?.filter((item) => item.status === "Pending" || item.status === "Overdue")
@@ -38,11 +44,9 @@ export function LandlordPayments() {
     (item) => item.status === "Overdue"
   ).length;
 
-  if (loading || !data) {
+  if (isLoading) {
     return <Loading />;
   }
-
-  console.log(data);
 
   return (
     <main className="p-6">
@@ -81,7 +85,7 @@ export function LandlordPayments() {
       </div>
 
       {/* Rent Due List */}
-      <LandlordPaymentRentDueCard data={data} />
+      <LandlordPaymentRentDueCard data={data!} />
 
       {/* Payment Actions */}
       {/* <LandlordPaymentActionsCard /> */}

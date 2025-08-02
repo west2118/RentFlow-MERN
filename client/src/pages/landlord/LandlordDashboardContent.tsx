@@ -28,11 +28,11 @@ const LandlordDashboardContent = () => {
 
   const { totalUnits, totalOccupiedUnits, totalAvailableUnits } =
     useMemo(() => {
-      const totalUnits = data?.units.length;
-      const totalOccupiedUnits = data?.units.filter(
+      const totalUnits = data?.units?.length;
+      const totalOccupiedUnits = data?.units?.filter(
         (unit) => unit.status === "Occupied"
       ).length;
-      const totalAvailableUnits = data?.units.filter(
+      const totalAvailableUnits = data?.units?.filter(
         (unit) => unit.status === "Available"
       ).length;
 
@@ -43,12 +43,12 @@ const LandlordDashboardContent = () => {
       };
     }, [data]);
 
-  const totalMonthRent = data?.paymentMonth.reduce(
+  const totalMonthRent = data?.paymentMonth?.reduce(
     (accu, curr) => accu + curr.amount,
     0
   );
 
-  const totalUnitsInPayment = data?.paymentMonth.length;
+  const totalUnitsInPayment = data?.paymentMonth?.length;
 
   const percentageTotalOccupied =
     (Number(totalOccupiedUnits) / Number(totalUnits)) * 100;

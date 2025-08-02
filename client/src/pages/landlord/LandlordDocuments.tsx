@@ -32,8 +32,14 @@ import {
   Upload,
   Cloud,
 } from "lucide-react";
+import { useDocumentUploader } from "@/hooks/useFileUploader";
 
 export function LandlordDocuments() {
+  const { documents, handleDocumentsChange, uploadDocuments } =
+    useDocumentUploader();
+
+  console.log(documents);
+
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -80,6 +86,7 @@ export function LandlordDocuments() {
                   type="file"
                   className="hidden"
                   multiple
+                  onChange={handleDocumentsChange}
                 />
               </label>
             </div>

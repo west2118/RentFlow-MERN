@@ -14,6 +14,7 @@ const postLease = async (req, res) => {
       securityDeposit,
       paymentSchedule,
       notes,
+      documents,
     } = req.body;
 
     console.log(req.body);
@@ -52,6 +53,7 @@ const postLease = async (req, res) => {
       paymentSchedule,
       unitNumber: unit.unitNumber,
       notes,
+      documents,
     });
     await newLease.save();
 

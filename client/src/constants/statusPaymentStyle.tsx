@@ -10,6 +10,13 @@ export const statusPaymentStyle = (status: string | undefined) => {
           Pending
         </Badge>
       );
+    case "In Process":
+      return (
+        <Badge variant="secondary">
+          <AlertCircle className="h-3 w-3 mr-1" />
+          In Process
+        </Badge>
+      );
     case "Paid":
       return (
         <Badge variant="default">

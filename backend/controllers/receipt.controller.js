@@ -29,6 +29,12 @@ const postReceipt = async (req, res) => {
       return res.status(400).json({ message: "Don't have authorized in this" });
     }
 
+    const updatedPayment = await Payment.findByIdAndUpdate(
+      paymentId,
+      { status: "In Process" },
+      { new: true }
+    );
+
     const newReceipt = await Receipt.create({
       tenantUid: payment.tenantUid,
       landlordUid: payment.landlordUid,
@@ -42,10 +48,13 @@ const postReceipt = async (req, res) => {
       method,
     });
 
-    res
-      .status(200)
-      .json({ message: "Payment receipt sent successfully!", newReceipt });
+    res.status(200).json({
+      message: "Payment receipt sent successfully!",
+      newReceipt,
+      updatedPayment,
+    });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -138,6 +147,12 @@ const rejectReceipt = async (req, res) => {
       return res.status(400).json({ message: "Don't have authorized in this" });
     }
 
+    const updatedPayment = await Payment.findByIdAndUpdate(
+      receipt.paymentId,
+      { status: "Pending" },
+      { new: true }
+    );
+
     const updatedReceipt = await Receipt.findByIdAndUpdate(id, {
       status: "Rejected",
     });
@@ -145,6 +160,7 @@ const rejectReceipt = async (req, res) => {
     res.status(200).json({
       message: "Declined receipt successfully!",
       updatedReceipt,
+      updatedPayment,
     });
   } catch (error) {
     console.log(error);
