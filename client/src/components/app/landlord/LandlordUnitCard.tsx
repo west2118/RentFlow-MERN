@@ -35,7 +35,10 @@ import { UnitDetailsModal } from "../UnitDetailsModal";
 
 type LandlordUnitCardProps = {
   item: UnitType;
-  handleOpenModal: (unit: UnitType, type: "invite" | "details") => void;
+  handleOpenModal: (
+    unit: UnitType,
+    type: "invite" | "details" | "lease"
+  ) => void;
 };
 
 const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
@@ -87,7 +90,10 @@ const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
             <div className="flex items-start text-sm gap-2">
               <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <span className="flex-1">
-                Lease ends: {item?.leaseEnd ? formatDate(item?.leaseEnd) : null}
+                Lease ends:{" "}
+                {item?.lease?.leaseEnd
+                  ? formatDate(item?.lease?.leaseEnd)
+                  : null}
               </span>
             </div>
           </>
@@ -95,7 +101,10 @@ const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
       </CardContent>
       <CardFooter className="mt-auto flex justify-between">
         {item?.status === "Occupied" ? (
-          <Button variant="outline" size="sm">
+          <Button
+            onClick={() => handleOpenModal(item, "lease")}
+            variant="outline"
+            size="sm">
             <FileText className="h-4 w-4 mr-2" />
             View Lease
           </Button>

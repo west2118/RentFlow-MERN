@@ -1,5 +1,6 @@
 import Lease from "../models/lease.model.js";
 import Payment from "../models/payment.model.js";
+import Receipt from "../models/receipt.model.js";
 import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
 
@@ -204,4 +205,77 @@ const getLatestPaymentUnits = async (req, res) => {
   }
 };
 
-export { getPaymentMonth, getTenantPayment, getPayment, getLatestPaymentUnits };
+const getLandlordPayments = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const now = new Date();
+
+    const payments = await Payment.find({
+      landlordUid: uid,
+      dueDate: {
+        $lte: now,
+      },
+    });
+
+    const getPaymentWithUserUnit = [];
+
+    for (const payment of payments) {
+      const unit = await Unit.findById(payment.unitId);
+      const lease = await Lease.findById(payment.leaseId);
+      const receipt = await Receipt.findOne({
+        paymentId: payment._id,
+        status: "Accepted",
+      }).select("method");
+
+      let tenantName = null;
+
+      if (payment?.tenantUid) {
+        const tenant = await User.findOne({ uid: payment.tenantUid });
+        tenantName = tenant ? `${tenant.firstName} ${tenant?.lastName}` : null;
+      }
+
+      let totalAmount = payment.amount;
+      let appliedLateFee = 0;
+
+      if (payment.status === "Pending" && payment.dueDate) {
+        const dueDate = new Date(payment.dueDate);
+        const gracePeriod = new Date(dueDate);
+        gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+        if (now > gracePeriod) {
+          appliedLateFee = lease.lateFee.afterDays;
+          totalAmount += appliedLateFee;
+          payment.status = "Overdue";
+        }
+      }
+
+      getPaymentWithUserUnit.push({
+        ...payment.toObject(),
+        unitNumber: unit.unitNumber,
+        tenantName,
+        lateFee: appliedLateFee,
+        totalAmount,
+        receipt,
+      });
+    }
+
+    res.status(200).json(getPaymentWithUserUnit);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export {
+  getPaymentMonth,
+  getTenantPayment,
+  getPayment,
+  getLatestPaymentUnits,
+  getLandlordPayments,
+};

@@ -32,8 +32,8 @@ const getUnitWithLeaseStatus = async (req, res) => {
       getUnitWithLeaseStatus.push({
         ...unit.toObject(),
         hasLease: !!activeLease,
-        leaseEnd: activeLease?.leaseEnd || null,
         tenantName,
+        lease: activeLease || null,
       });
     }
 

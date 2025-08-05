@@ -12,12 +12,14 @@ import LandlordUnitCardSkeleton from "@/components/app/landlord/units/LandlordUn
 import { useState } from "react";
 import { InviteTenantModal } from "@/components/app/landlord/InviteTenantModal";
 import { UnitDetailsModal } from "@/components/app/UnitDetailsModal";
+import { LeaseDetailsModal } from "@/components/app/LeaseDetailsModal";
+import type { LeaseType } from "@/types/leaseTypes";
 
 export function LandlordUnits() {
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
   const [isModalOpenType, setIsModalOpenType] = useState<
-    "invite" | "details" | null
+    "invite" | "details" | "lease" | null
   >(null);
   const [selectedUnit, setSelectedUnit] = useState<UnitType | null>(null);
 
@@ -29,7 +31,10 @@ export function LandlordUnits() {
 
   console.log("DATA: ", data);
 
-  const handleOpenModal = (unit: UnitType, type: "invite" | "details") => {
+  const handleOpenModal = (
+    unit: UnitType,
+    type: "invite" | "details" | "lease"
+  ) => {
     setIsModalOpenType(type);
     setSelectedUnit(unit);
   };
@@ -143,13 +148,13 @@ export function LandlordUnits() {
         />
       )}
 
-      {/* {isModalOpen && (
+      {selectedUnit && isModalOpenType === "lease" && (
         <LeaseDetailsModal
-          isModalOpen={isModalOpen}
-          isCloseModal={() => setIsModalOpen(false)}
-          lease={lease}
+          isModalOpen
+          isCloseModal={() => setIsModalOpenType(null)}
+          lease={selectedUnit.lease ?? null}
         />
-      )} */}
+      )}
     </main>
   );
 }

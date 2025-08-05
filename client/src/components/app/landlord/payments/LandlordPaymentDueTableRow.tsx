@@ -39,7 +39,7 @@ const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
         <Button
           variant="default"
           size="default"
-          disabled={item?.status === "Pending"}
+          disabled={item?.status === "Pending" || item?.status === "Overdue"}
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2">
           <Eye className="h-4 w-4" />

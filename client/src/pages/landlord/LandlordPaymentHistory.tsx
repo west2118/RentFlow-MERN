@@ -1,3 +1,6 @@
+import LandlordPaymentHistoryPaymentCards from "@/components/app/landlord/payment-history/LandlordPaymentHistoryPaymentCards";
+import LandlordPaymentHistoryTableRow from "@/components/app/landlord/payment-history/LandlordPaymentHistoryTableRow";
+import { Loading } from "@/components/app/Loading";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +18,10 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { fetchData } from "@/constants/fetchData";
+import { useUserStore } from "@/store/useUserStore";
+import type { PaymentType } from "@/types/paymentTypes";
+import { useQuery } from "@tanstack/react-query";
 import {
   DollarSign,
   CheckCircle2,
@@ -25,8 +32,34 @@ import {
 } from "lucide-react";
 
 export function LandlordPaymentHistory() {
+  const token = useUserStore((state) => state.userToken);
+
+  const { data, isLoading } = useQuery<PaymentType[]>({
+    queryKey: ["landlord-payments"],
+    queryFn: fetchData("http://localhost:8080/api/landlord-payments", token),
+    enabled: !!token,
+  });
+
+  const totalCollectedAndPayments = (status: string) => {
+    const payments = data?.filter((payment) => payment.status === status);
+    const totalCollected = payments?.reduce(
+      (accu, curr) => accu + curr.amount,
+      0
+    );
+    const totalPayment = payments?.length;
+
+    return {
+      totalCollected,
+      totalPayment,
+    };
+  };
+
+  console.log(data);
+
+  if (isLoading) return <Loading />;
+
   return (
-    <div className="container mx-auto p-4 md:p-6 max-w-6xl">
+    <div className="container mx-auto p-4 md:p-6 w-full max-w-8xl">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Payment History</h1>
@@ -49,52 +82,28 @@ export function LandlordPaymentHistory() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Total Collected */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Collected
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$12,450.00</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              From 10 completed payments
-            </p>
-          </CardContent>
-        </Card>
+        <LandlordPaymentHistoryPaymentCards
+          totalCollectedAndPayments={totalCollectedAndPayments("Paid")}
+          title="Total Collected"
+          icon={DollarSign}
+          description="completed payment"
+        />
 
-        {/* Outstanding Balance */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Outstanding Balance
-            </CardTitle>
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$1,250.00</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              1 pending payment
-            </p>
-          </CardContent>
-        </Card>
+        {/* Pending Balance */}
+        <LandlordPaymentHistoryPaymentCards
+          totalCollectedAndPayments={totalCollectedAndPayments("Pending")}
+          title="Pending Balance"
+          icon={AlertCircle}
+          description="pending payment"
+        />
 
-        {/* Suggestion Card */}
-        <Card className="bg-blue-50 border-blue-100">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Recommendation
-            </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">
-              Consider offering a 5% discount for early payments to improve
-              collection rates.
-            </p>
-          </CardContent>
-        </Card>
+        {/* Overdue balance */}
+        <LandlordPaymentHistoryPaymentCards
+          totalCollectedAndPayments={totalCollectedAndPayments("Overdue")}
+          title="Overdue Balance"
+          icon={AlertCircle}
+          description="overdue payment"
+        />
       </div>
 
       {/* Payment History Table */}
@@ -109,10 +118,11 @@ export function LandlordPaymentHistory() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Payment Date</TableHead>
+                <TableHead>Due Date</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead>Amount</TableHead>
+                <TableHead>Payment Date</TableHead>
                 <TableHead>Method</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Receipt</TableHead>
@@ -120,104 +130,12 @@ export function LandlordPaymentHistory() {
             </TableHeader>
             <TableBody>
               {/* Paid Payment */}
-              <TableRow>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    May 1, 2024
-                  </div>
-                </TableCell>
-                <TableCell>Sarah Johnson</TableCell>
-                <TableCell>Unit 3B</TableCell>
-                <TableCell>$1,250.00</TableCell>
-                <TableCell>Bank Transfer</TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center gap-1 text-green-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Paid
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-
-              {/* Paid Payment */}
-              <TableRow>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    April 1, 2024
-                  </div>
-                </TableCell>
-                <TableCell>Sarah Johnson</TableCell>
-                <TableCell>Unit 3B</TableCell>
-                <TableCell>$1,250.00</TableCell>
-                <TableCell>Bank Transfer</TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center gap-1 text-green-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Paid
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-
-              {/* Pending Payment */}
-              <TableRow>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    June 1, 2024
-                  </div>
-                </TableCell>
-                <TableCell>Sarah Johnson</TableCell>
-                <TableCell>Unit 3B</TableCell>
-                <TableCell>$1,250.00</TableCell>
-                <TableCell>-</TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center gap-1 text-yellow-600">
-                    <AlertCircle className="h-4 w-4" />
-                    Pending
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm" disabled>
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-
-              {/* Paid Payment */}
-              <TableRow>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    March 1, 2024
-                  </div>
-                </TableCell>
-                <TableCell>Sarah Johnson</TableCell>
-                <TableCell>Unit 3B</TableCell>
-                <TableCell>$1,250.00</TableCell>
-                <TableCell>Credit Card</TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center gap-1 text-green-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Paid
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
+              {data?.map((payment) => (
+                <LandlordPaymentHistoryTableRow
+                  key={payment._id}
+                  payment={payment}
+                />
+              ))}
             </TableBody>
           </Table>
         </CardContent>
