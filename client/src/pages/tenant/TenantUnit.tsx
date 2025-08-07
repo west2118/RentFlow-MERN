@@ -11,10 +11,12 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { fetchData } from "@/constants/fetchData";
 import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import type { LeaseType } from "@/types/leaseTypes";
 import type { UnitType } from "@/types/unitTypes";
+import { useQuery } from "@tanstack/react-query";
 import { Download, FileText } from "lucide-react";
 
 type DataType = {
@@ -23,14 +25,17 @@ type DataType = {
 };
 
 const TenantUnit = () => {
-  const user = useUserStore((state) => state.user);
   const token = useUserStore((state) => state.userToken);
-  const { data, loading, error } = useFetchData<DataType>(
-    `http://localhost:8080/api/unit-lease`,
-    token
-  );
 
-  if (loading || !data) return <Loading />;
+  const { data, isLoading } = useQuery<DataType>({
+    queryKey: ["tenant-unit-lease"],
+    queryFn: fetchData("http://localhost:8080/api/tenant-unit-lease", token),
+    enabled: !!token,
+  });
+
+  console.log(data);
+
+  if (isLoading) return <Loading />;
 
   return (
     <main className="p-6">

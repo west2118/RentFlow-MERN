@@ -21,7 +21,7 @@ const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
         <CardTitle className="text-sm font-medium">Lease Information</CardTitle>
         <FileText className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="flex justify-between text-sm mb-2">
           <span className="text-muted-foreground">Start Date</span>
           <span>{formatDate(lease?.leaseStart)}</span>
@@ -39,7 +39,7 @@ const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
           <span>{lease?.paymentSchedule}</span>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-end">
         <Button
           onClick={() => setIsModalOpen(true)}
           variant="outline"

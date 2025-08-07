@@ -23,7 +23,7 @@ const TenantUnitDetailsCards = ({ unit }: { unit: UnitType }) => {
           Basic information about your rental unit
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1">
         <div className="grid grid-cols-2 gap-y-2">
           <span className="text-muted-foreground">Unit Type</span>
           <span className="text-end">

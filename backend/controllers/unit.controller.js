@@ -2,6 +2,7 @@ import Lease from "../models/lease.model.js";
 import Payment from "../models/payment.model.js";
 import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
+import Maintenance from "../models/maintenance.model.js";
 
 const getUnitWithLeaseStatus = async (req, res) => {
   try {
@@ -43,7 +44,7 @@ const getUnitWithLeaseStatus = async (req, res) => {
   }
 };
 
-const getUserUnitAndLease = async (req, res) => {
+const getUserUnitLeasePaymentAndMaintenance = async (req, res) => {
   try {
     const { uid } = req.user;
 
@@ -80,7 +81,57 @@ const getUserUnitAndLease = async (req, res) => {
       unitId: user.unitId,
     });
 
-    res.status(200).json({ unit, lease, paymentMonth });
+    const maintenance = await Maintenance.find({
+      tenantUid: uid,
+    })
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    let totalAmount = paymentMonth.amount;
+    let appliedLateFee = 0;
+
+    if (paymentMonth.status === "Pending" && paymentMonth.dueDate) {
+      const dueDate = new Date(paymentMonth.dueDate);
+      const gracePeriod = new Date(dueDate);
+      gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+      if (now > gracePeriod) {
+        appliedLateFee = lease.lateFee.amount;
+        totalAmount += appliedLateFee;
+        paymentMonth.status = "Overdue";
+      }
+    }
+
+    const payment = {
+      ...paymentMonth.toObject(),
+      lateFee: appliedLateFee,
+      totalAmount,
+    };
+
+    res.status(200).json({ unit, lease, payment, maintenance });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const getUserUnitAndLease = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const unit = await Unit.findById(user.unitId);
+
+    const lease = await Lease.findOne({
+      isActive: true,
+      tenantUid: user.uid,
+      unitId: user.unitId,
+    });
+
+    res.status(200).json({ unit, lease });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -288,6 +339,7 @@ const putUnit = async (req, res) => {
 
 export {
   postUnit,
+  getUserUnitLeasePaymentAndMaintenance,
   getUserUnitAndLease,
   getUserUnitAndUserInfo,
   getLandlordUnits,

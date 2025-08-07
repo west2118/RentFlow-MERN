@@ -20,7 +20,7 @@ const TenantDashboardUnitCard = ({ unit }: { unit: UnitType }) => {
         <CardTitle className="text-sm font-medium">My Unit</CardTitle>
         <Home className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="text-xl font-bold">Unit {unit?.unitNumber}</div>
         <p className="text-sm text-muted-foreground">{unit?.address}</p>
         <div className="mt-2 text-sm">
@@ -30,7 +30,7 @@ const TenantDashboardUnitCard = ({ unit }: { unit: UnitType }) => {
           <p>{unit?.size} sq ft</p>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-end">
         <Button
           onClick={() => setIsModalOpen(true)}
           variant="outline"

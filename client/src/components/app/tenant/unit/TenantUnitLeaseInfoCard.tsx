@@ -22,7 +22,7 @@ const TenantUnitLeaseInfoCard = ({ lease }: { lease: LeaseType }) => {
         <CardTitle>Lease Information</CardTitle>
         <CardDescription>Your current rental agreement details</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Lease Start</span>
           <span className="text-end">{formatDate(lease?.leaseStart)}</span>
@@ -33,20 +33,23 @@ const TenantUnitLeaseInfoCard = ({ lease }: { lease: LeaseType }) => {
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Monthly Rent</span>
-          <span className="text-end">${lease?.rentAmount}</span>
+          <span className="text-end">${lease?.rentAmount.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Security Deposit</span>
-          <span className="text-end">${lease?.securityDeposit}</span>
+          <span className="text-end">${lease?.securityDeposit.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Payment Schedule</span>
           <span className="text-end">{lease?.paymentSchedule}</span>
         </div>
-        {/* <div className="flex justify-between">
+        <div className="flex justify-between">
           <span className="text-muted-foreground">Late Fee</span>
-          <span>$50 after 5 days</span>
-        </div> */}
+          <span>
+            ${lease?.lateFee?.amount.toFixed(2)} after{" "}
+            {lease?.lateFee?.afterDays} days
+          </span>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button onClick={() => setIsModalOpen(true)} variant="outline">

@@ -8,6 +8,7 @@ import {
   getUnitWithLeaseStatus,
   getUnit,
   putUnit,
+  getUserUnitLeasePaymentAndMaintenance,
 } from "../controllers/unit.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -16,7 +17,8 @@ const router = express.Router();
 router.post("/unit", verifyToken, postUnit);
 router.get("/unit", verifyToken, getUnitWithLeaseStatus);
 router.get("/unit-user/:id", verifyToken, getUserUnitAndUserInfo);
-router.get("/unit-lease", verifyToken, getUserUnitAndLease);
+router.get("/unit-lease", verifyToken, getUserUnitLeasePaymentAndMaintenance);
+router.get("/tenant-unit-lease", verifyToken, getUserUnitAndLease);
 router.get("/last-month-count", verifyToken, getTotalLastMonthUnits);
 router.get("/landlord-units", verifyToken, getLandlordUnits);
 router.get("/unit/:id", verifyToken, getUnit);

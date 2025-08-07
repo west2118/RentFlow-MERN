@@ -34,9 +34,11 @@ const TenantDashboardRentCard = ({ payment }: { payment: PaymentType }) => {
         <CardTitle className="text-sm font-medium">Rent Status</CardTitle>
         <DollarSign className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="text-xl font-bold mb-2">
-          ${payment?.amount.toFixed(2)}
+          {payment?.lateFee
+            ? `$${payment?.amount.toFixed(2)} + $${payment?.lateFee.toFixed(2)}`
+            : `$${payment?.amount.toFixed(2)}`}
         </div>
         <div className="flex justify-between text-sm mb-1">
           <span className="text-muted-foreground">Due Date</span>
@@ -53,9 +55,9 @@ const TenantDashboardRentCard = ({ payment }: { payment: PaymentType }) => {
           className="h-2"
         />
       </CardContent>
-      <CardFooter>
+      <CardFooter className="">
         {payment?.status === "Paid" || (data && data?.status !== "Rejected") ? (
-          <Button onClick={() => setIsModalOpen(true)} className="w-full">
+          <Button onClick={() => setIsModalOpen(true)} className="w-full ">
             View Receipt
           </Button>
         ) : (
