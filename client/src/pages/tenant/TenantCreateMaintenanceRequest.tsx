@@ -16,13 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Loader,
-  Paperclip,
-} from "lucide-react";
+import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { issuesType } from "@/constants/issuesTypes";
 import { urgencyLevel } from "@/constants/urgencyLevel";
@@ -32,8 +26,8 @@ import { useImageUploader } from "@/hooks/useImageUploader";
 import ImageUpload from "../../components/app/shared/ImageUpload";
 import axios from "axios";
 import { useUserStore } from "@/store/useUserStore";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 type FormData = {
   issueType: string;
@@ -44,8 +38,9 @@ type FormData = {
 
 type ImageType = "photo";
 
-const TenantCreateMaintenanceRequest = () => {
+const TenantCreateMaintenanceRequest = ({ isEdit }: { isEdit: boolean }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const user = useUserStore((state) => state.user);
   const token = useUserStore((state) => state.userToken);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -55,8 +50,47 @@ const TenantCreateMaintenanceRequest = () => {
     urgencyLevel: "",
     description: "",
   });
-  const { images, handleImageChange, handleUploadImages } =
+  const { images, handleImageChange, handleUploadImages, setImages } =
     useImageUploader<ImageType>(["photo"]);
+
+  useEffect(() => {
+    if (!token || !id) return;
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/maintenance/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = response?.data;
+
+        console.log(data);
+
+        if (data) {
+          setField("issueType", data.issueType || "");
+          setField("requestName", data.requestName || "");
+          setField("urgencyLevel", data.urgencyLevel || "");
+          setField("description", data.description || "");
+          setImages((prev) => ({
+            ...prev,
+            photo: {
+              file: data?.photo,
+              preview: data?.photo,
+            },
+          }));
+        }
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || error.message);
+      }
+    };
+
+    fetchData();
+  }, [token, id]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -86,15 +120,29 @@ const TenantCreateMaintenanceRequest = () => {
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/maintenance",
-        { ...addedData },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      let response;
+
+      if (isEdit && id) {
+        response = await axios.put(
+          `http://localhost:8080/api/maintenance/${id}`,
+          { ...addedData },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        response = await axios.post(
+          "http://localhost:8080/api/maintenance",
+          { ...addedData },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
 
       navigate("/tenant/maintenance");
       toast.success(response?.data.message);
@@ -114,7 +162,7 @@ const TenantCreateMaintenanceRequest = () => {
       <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle>Submit New Request</CardTitle>
+            <CardTitle>Submit {isEdit ? "Update" : "New"} Request</CardTitle>
             <CardDescription>
               Report maintenance issues in your unit
             </CardDescription>
@@ -205,7 +253,7 @@ const TenantCreateMaintenanceRequest = () => {
             </Button>
             <Button disabled={isLoading}>
               {isLoading ? <Loader className="animate-spin h-5 w-5" /> : ""}
-              Submit Request
+              {isEdit ? "Update" : "Submit"} Request
             </Button>
           </CardFooter>
         </Card>

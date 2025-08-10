@@ -16,5 +16,6 @@ export type PaymentType = {
   receipt?: {
     _id: string;
     method: string;
+    status?: string;
   };
 };

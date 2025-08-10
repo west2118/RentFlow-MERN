@@ -108,8 +108,6 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
 
         const data = response.data;
 
-        console.log(data);
-
         if (data) {
           setFormFields({
             name: data.name || "",

@@ -1,16 +1,16 @@
 import TenantPaymentCurrentDueCard from "@/components/app/tenant/payments/TenantPaymentCurrentDueCard";
 import TenantPaymentStatusCard from "@/components/app/tenant/payments/TenantPaymentStatusCard";
-import TenantPaymentMethodCard from "@/components/app/tenant/payments/TenantPaymentMethodCard";
 import { useUserStore } from "@/store/useUserStore";
 import useFetchData from "@/hooks/useFetchData";
 import type { PaymentType } from "@/types/paymentTypes";
 import { Loading } from "@/components/app/Loading";
 import TenantPaymentCompletedTableCard from "@/components/app/tenant/payments/TenantPaymentCompletedTableCard";
-import { useNavigate } from "react-router-dom";
+import TenantPaymentNextMonthCard from "@/components/app/tenant/payments/TenantPaymentNextMonthCard";
 
 type DataType = {
   paymentMonth: PaymentType;
   completedPayment: PaymentType[];
+  nextMonthPayment: PaymentType;
 };
 
 const TenantPayment = () => {
@@ -19,8 +19,6 @@ const TenantPayment = () => {
     `http://localhost:8080/api/tenant-payment`,
     token
   );
-
-  console.log(data);
 
   if (loading || !data) return <Loading />;
 
@@ -36,7 +34,7 @@ const TenantPayment = () => {
 
         <TenantPaymentStatusCard status={data?.paymentMonth.status} />
 
-        <TenantPaymentMethodCard />
+        <TenantPaymentNextMonthCard item={data?.nextMonthPayment} />
       </div>
 
       {/* Payment History Table */}

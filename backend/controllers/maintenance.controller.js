@@ -183,10 +183,66 @@ const getLandlordMaintenanceDashboard = async (req, res) => {
   }
 };
 
+const getMaintenance = async (req, res) => {
+  try {
+    const { uid } = req.user;
+    const { id } = req.params;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const maintenance = await Maintenance.findById(id);
+
+    res.status(200).json(maintenance);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const putMaintenance = async (req, res) => {
+  try {
+    const { uid } = req.user;
+    const { id } = req.params;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const maintenance = await Maintenance.findById(id);
+    if (!maintenance) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    if (uid.toString() !== maintenance.tenantUid.toString()) {
+      return res
+        .status(400)
+        .json({ message: "You don't have authorized in this" });
+    }
+
+    const updatedMaintenance = await Maintenance.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Updated maintenance successfully!",
+      updatedMaintenance,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 export {
   postMaintenanceRequest,
   getTenantMaintenance,
   getLandlordMaintenance,
   getLandlordMaintenanceDashboard,
   markAsInProgress,
+  getMaintenance,
+  putMaintenance,
 };

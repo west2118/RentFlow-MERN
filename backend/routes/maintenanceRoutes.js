@@ -5,6 +5,8 @@ import {
   getLandlordMaintenance,
   getLandlordMaintenanceDashboard,
   markAsInProgress,
+  getMaintenance,
+  putMaintenance,
 } from "../controllers/maintenance.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -19,5 +21,7 @@ router.get(
   getLandlordMaintenanceDashboard
 );
 router.put("/inprogress-maintenance", verifyToken, markAsInProgress);
+router.get("/maintenance/:id", verifyToken, getMaintenance);
+router.put("/maintenance/:id", verifyToken, putMaintenance);
 
 export default router;

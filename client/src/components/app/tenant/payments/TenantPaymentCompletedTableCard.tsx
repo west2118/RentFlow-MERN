@@ -13,16 +13,24 @@ import {
   TableRow,
   TableHead,
   TableBody,
-  TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Download, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { PaymentType } from "@/types/paymentTypes";
 import TenantPaymentCompletedTableRow from "./TenantPaymentCompletedTableRow";
 import TenantPaymentCompletedNoData from "./TenantPaymentCompletedNoData";
+import { ReceiptModal } from "../../ReceiptModal";
+import { useState } from "react";
 
 const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedItem, setSelectedItem] = useState<PaymentType | null>(null);
+
+  const handleOpenModal = (payment: PaymentType) => {
+    setIsModalOpen(true);
+    setSelectedItem(payment);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -56,6 +64,7 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
                 <TenantPaymentCompletedTableRow
                   key={payment._id}
                   payment={payment}
+                  handleOpenModal={handleOpenModal}
                 />
               ))
             ) : (
@@ -83,6 +92,14 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
             </Button>
           </div>
         </CardFooter>
+      )}
+
+      {isModalOpen && (
+        <ReceiptModal
+          isModalOpen={isModalOpen}
+          isCloseModal={() => setIsModalOpen(false)}
+          payment={selectedItem}
+        />
       )}
     </Card>
   );

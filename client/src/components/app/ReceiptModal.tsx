@@ -36,7 +36,7 @@ import DataLoading from "./DataLoading";
 type ReceiptModalProps = {
   isModalOpen: true;
   isCloseModal: () => void;
-  payment: PaymentType;
+  payment: PaymentType | null;
 };
 
 export function ReceiptModal({
@@ -193,7 +193,7 @@ export function ReceiptModal({
                   <div>
                     <p className="text-sm text-muted-foreground">Due Date</p>
                     <p className="font-medium">
-                      {formatDate(payment?.dueDate.toString())}
+                      {formatDate(payment?.dueDate.toString()!)}
                     </p>
                   </div>
                 </div>

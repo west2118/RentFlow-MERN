@@ -1,28 +1,9 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
+import { TableRow, TableCell } from "@/components/ui/table";
 import { formatDate } from "@/constants/formatDate";
 import { statusStyle } from "@/constants/statusStyle";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
-import {
-  Check,
-  Clock,
-  Eye,
-  Home,
-  MessageSquare,
-  MoreVertical,
-  User,
-  Wrench,
-} from "lucide-react";
-import { useState } from "react";
-import LandlordManageRequestModal from "./LandlordManageRequestModal";
+import { Check, Eye, Home, MoreVertical, User, Wrench } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

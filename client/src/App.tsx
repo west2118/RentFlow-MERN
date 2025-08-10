@@ -74,7 +74,11 @@ const router = createBrowserRouter(
         <Route path="make-payment/:id" element={<TenantMakePayment />} />
         <Route
           path="maintenance-request/create"
-          element={<TenantCreateMaintenanceRequest />}
+          element={<TenantCreateMaintenanceRequest isEdit={false} />}
+        />
+        <Route
+          path="maintenance-request/edit/:id"
+          element={<TenantCreateMaintenanceRequest isEdit={true} />}
         />
       </Route>
     </>

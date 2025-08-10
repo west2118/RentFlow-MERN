@@ -24,15 +24,32 @@ import type { MaintenanceType } from "@/types/maintenanceTypes";
 import TenantMaintenanceTable from "./TenantMaintenanceTable";
 import { Loading } from "../../Loading";
 import TenantPaymentCompletedNoData from "../payments/TenantPaymentCompletedNoData";
+import { fetchData } from "@/constants/fetchData";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { MaintenanceModalDetails } from "../../MaintenanceModalDetails";
 
 const TenantMaintenanceHistoryCard = () => {
-  const token = useUserStore((state) => state.userToken);
-  const { data, loading, error } = useFetchData<MaintenanceType[]>(
-    "http://localhost:8080/api/tenant-maintenance",
-    token
+  const [isModalDetailsOpen, setIsModalDetailsOpen] = useState<boolean>(false);
+  const [selectedItem, setSelectedItem] = useState<MaintenanceType | null>(
+    null
   );
+  const token = useUserStore((state) => state.userToken);
 
-  if (loading || !data) {
+  const { data, isLoading } = useQuery<MaintenanceType[]>({
+    queryKey: ["tenant-unit-lease-maintenance-payment"],
+    queryFn: fetchData("http://localhost:8080/api/tenant-maintenance", token),
+    enabled: !!token,
+  });
+
+  console.log(data);
+
+  const handleOpenDetailsModal = (item: MaintenanceType) => {
+    setIsModalDetailsOpen(true);
+    setSelectedItem(item);
+  };
+
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -62,9 +79,13 @@ const TenantMaintenanceHistoryCard = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.length > 0 ? (
+            {data && data.length > 0 ? (
               data?.map((item) => (
-                <TenantMaintenanceTable key={item._id} item={item} />
+                <TenantMaintenanceTable
+                  key={item._id}
+                  item={item}
+                  handleOpenDetailsModal={handleOpenDetailsModal}
+                />
               ))
             ) : (
               <TenantPaymentCompletedNoData
@@ -75,7 +96,7 @@ const TenantMaintenanceHistoryCard = () => {
           </TableBody>
         </Table>
       </CardContent>
-      {data.length > 0 && (
+      {data && data.length > 0 && (
         <CardFooter className="flex justify-between">
           <div className="text-sm text-muted-foreground">
             Showing <span className="font-medium">1</span> to{" "}
@@ -91,6 +112,17 @@ const TenantMaintenanceHistoryCard = () => {
             </Button>
           </div>
         </CardFooter>
+      )}
+
+      {isModalDetailsOpen && (
+        <MaintenanceModalDetails
+          isModalOpen={isModalDetailsOpen}
+          onCloseModal={() => {
+            setIsModalDetailsOpen(false);
+            setSelectedItem(null);
+          }}
+          item={selectedItem}
+        />
       )}
     </Card>
   );

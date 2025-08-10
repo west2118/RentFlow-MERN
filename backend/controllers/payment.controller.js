@@ -98,6 +98,17 @@ const getTenantPayment = async (req, res) => {
       999
     );
 
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const endOfNextMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 2, // +2 because month index is zero-based
+      0, // day 0 means the last day of the *previous* month (which is next month here)
+      23,
+      59,
+      59,
+      999
+    );
+
     const paymentMonth = await Payment.findOne({
       tenantUid: uid,
       dueDate: {
@@ -106,15 +117,88 @@ const getTenantPayment = async (req, res) => {
       },
     });
 
+    const nextMonthPayment = await Payment.findOne({
+      tenantUid: uid,
+      dueDate: {
+        $gte: startOfNextMonth,
+        $lte: endOfNextMonth,
+      },
+    });
+
+    const lease = await Lease.findById(paymentMonth.leaseId);
+    const receipt = await Receipt.findOne({
+      paymentId: paymentMonth._id,
+      status: { $ne: "Rejected" },
+    }).select("method status");
+
+    let totalAmount = paymentMonth.amount;
+    let appliedLateFee = 0;
+
+    if (paymentMonth.status === "Pending" && paymentMonth.dueDate) {
+      const dueDate = new Date(paymentMonth.dueDate);
+      const gracePeriod = new Date(dueDate);
+      gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+      if (now > gracePeriod) {
+        appliedLateFee = lease.lateFee.amount;
+        totalAmount += appliedLateFee;
+        paymentMonth.status = "Overdue";
+      }
+    }
+
+    const payment = {
+      ...paymentMonth.toObject(),
+      totalAmount,
+      lateFee: appliedLateFee,
+      receipt: receipt ? receipt : null,
+    };
+
     const completedPayment = await Payment.find({
       tenantUid: uid,
       dueDate: {
         $lte: new Date(),
       },
-    });
+    }).sort({ dueDate: -1 });
 
-    res.status(200).json({ paymentMonth, completedPayment });
+    let paymentHistory = [];
+
+    for (const payment of completedPayment) {
+      const lease = await Lease.findById(payment.leaseId);
+      const receipt = await Receipt.findOne({
+        paymentId: payment._id,
+        status: { $ne: "Rejected" },
+      }).select("method status");
+
+      let totalAmount = payment.amount;
+      let appliedLateFee = 0;
+
+      if (payment.status === "Pending" && payment.dueDate) {
+        const dueDate = new Date(payment.dueDate);
+        const gracePeriod = new Date(dueDate);
+        gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+        if (now > gracePeriod) {
+          appliedLateFee = lease.lateFee.amount;
+          totalAmount += appliedLateFee;
+          payment.status = "Overdue";
+        }
+      }
+
+      paymentHistory.push({
+        ...payment.toObject(),
+        totalAmount,
+        lateFee: appliedLateFee,
+        receipt: receipt ? receipt : null,
+      });
+    }
+
+    res.status(200).json({
+      paymentMonth: payment,
+      completedPayment: paymentHistory,
+      nextMonthPayment,
+    });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
