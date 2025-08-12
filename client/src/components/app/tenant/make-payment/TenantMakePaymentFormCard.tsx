@@ -16,10 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDate } from "@/constants/formatDate";
-import useFetchData from "@/hooks/useFetchData";
 import { useForm } from "@/hooks/useForm";
 import { useImageUploader } from "@/hooks/useImageUploader";
 import { Banknote, DollarSign, Loader, Phone, Upload } from "lucide-react";
@@ -28,6 +25,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useState } from "react";
+import { paymentMethods } from "@/constants/paymentMethods";
 
 type FormData = {
   amountPaid: number;
@@ -163,11 +161,11 @@ const TenantMakePaymentFormCard = ({
                 <SelectValue placeholder="Select payment method" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
-                <SelectItem value="gcash">GCash</SelectItem>
-                <SelectItem value="paypal">PayPal</SelectItem>
-                <SelectItem value="maya">Maya</SelectItem>
-                <SelectItem value="others">Others</SelectItem>
+                {paymentMethods.map((method) => (
+                  <SelectItem key={method.value} value={method.value}>
+                    {method.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

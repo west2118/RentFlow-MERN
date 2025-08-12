@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { formatDate } from "@/constants/formatDate";
+import { paymentValue } from "@/constants/paymentValue";
 import { statusPaymentStyle } from "@/constants/statusPaymentStyle";
 import type { PaymentType } from "@/types/paymentTypes";
 import { Download, Eye } from "lucide-react";
@@ -15,18 +16,23 @@ const TenantPaymentCompletedTableRow = ({
 }) => {
   const navigate = useNavigate();
 
+  console.log("Row: ", payment);
+
   return (
     <TableRow>
       <TableCell>
         {payment?.datePaid ? formatDate(payment?.datePaid.toString()) : "-"}
       </TableCell>
+      <TableCell>${payment?.amount.toFixed(2)}</TableCell>
       <TableCell>
-        {payment?.lateFee
-          ? `$${payment?.amount.toFixed(2)} + $${payment?.lateFee.toFixed(2)}`
-          : `$${payment?.amount.toFixed(2)}`}
+        ${payment?.lateFee ? payment?.lateFee.toFixed(2) : Number(0).toFixed(2)}
       </TableCell>
       <TableCell>{formatDate(payment?.dueDate.toString())}</TableCell>
-      <TableCell>{payment?.receipt ? payment?.receipt?.method : "-"}</TableCell>
+      <TableCell>
+        {payment?.receipt?.status === "Accepted"
+          ? paymentValue(payment?.receipt?.method)
+          : "-"}
+      </TableCell>
       <TableCell>{statusPaymentStyle(payment?.status)}</TableCell>
       <TableCell>
         {payment?.status === "Paid" ||

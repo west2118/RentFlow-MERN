@@ -22,7 +22,7 @@ const LandlordPaymentCollectedCard = ({
         <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">${totalRent?.toFixed(2)}</div>
+        <div className="text-2xl font-bold">${totalPaid?.toFixed(2)}</div>
         <p className="text-xs text-muted-foreground">{percentage}% collected</p>
         <Progress value={percentage} className="h-2 mt-2" />
       </CardContent>

@@ -15,6 +15,7 @@ const PaymentSchema = mongoose.Schema({
   amount: { type: Number, required: true },
   dueDate: { type: Date, required: true },
   status: { type: String, required: true, default: "Pending" },
+  lateFee: { type: Number, default: 0 },
   unitNumber: { type: String },
   tenantUid: { type: String },
   datePaid: { type: String },

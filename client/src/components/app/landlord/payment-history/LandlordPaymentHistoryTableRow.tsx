@@ -24,6 +24,7 @@ const LandlordPaymentHistoryTableRow = ({
       <TableCell>{payment.tenantName}</TableCell>
       <TableCell>Unit {payment.unitNumber}</TableCell>
       <TableCell>${payment.amount.toFixed(2)}</TableCell>
+      <TableCell>${payment?.lateFee?.toFixed(2)}</TableCell>
       <TableCell>
         {payment?.datePaid ? formatDate(payment?.datePaid?.toString()) : "-"}
       </TableCell>

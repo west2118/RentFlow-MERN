@@ -9,7 +9,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/constants/formatDate";
 import { statusPaymentStyle } from "@/constants/statusPaymentStyle";
-import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import type { PaymentType } from "@/types/paymentTypes";
 import type { ReceiptType } from "@/types/receiptTypes";
@@ -32,6 +31,7 @@ import ReactDOM from "react-dom";
 import { toast } from "react-toastify";
 import { LazyImage } from "./LazyImage";
 import DataLoading from "./DataLoading";
+import { paymentMethods } from "@/constants/paymentMethods";
 
 type ReceiptModalProps = {
   isModalOpen: true;
@@ -67,7 +67,7 @@ export function ReceiptModal({
           }
         );
 
-        console.log("Data: ", response.data);
+        console.log("Data Receipt: ", response.data);
 
         setData(response.data);
       } catch (error: any) {
@@ -92,6 +92,8 @@ export function ReceiptModal({
     };
   }, [isModalOpen]);
 
+  console.log("Receiptt: ", data);
+
   const handleAcceptReceipt = async (status: string) => {
     setIsButtonsLoading(true);
 
@@ -101,7 +103,7 @@ export function ReceiptModal({
       if (status === "Accepted") {
         response = await axios.put(
           `http://localhost:8080/api/accept-receipt/${data?._id}`,
-          {},
+          { lateFee: data?.lateFee },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -127,8 +129,6 @@ export function ReceiptModal({
       setIsButtonsLoading(false);
     }
   };
-
-  console.log(data?.status);
 
   const modalRoot = document.getElementById("modal-root");
   if (!modalRoot) return null;
@@ -197,6 +197,23 @@ export function ReceiptModal({
                     </p>
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Due</p>
+                    <p className="font-medium">
+                      $
+                      {(
+                        (payment?.lateFee ?? 0) + (payment?.amount ?? 0)
+                      ).toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Late Fee</p>
+                    <p className="font-medium">
+                      ${payment?.lateFee?.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
                 <Separator />
                 <div>
                   <p className="text-sm text-muted-foreground">Amount Paid</p>
@@ -217,7 +234,13 @@ export function ReceiptModal({
                     <p className="text-sm text-muted-foreground">
                       Payment Method
                     </p>
-                    <p className="font-medium">{data?.method}</p>
+                    <p className="font-medium">
+                      {
+                        paymentMethods.find(
+                          (method) => method.value === data?.method
+                        )?.label
+                      }
+                    </p>
                   </div>
                 </div>
                 <div>

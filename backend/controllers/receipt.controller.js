@@ -1,3 +1,4 @@
+import Lease from "../models/lease.model.js";
 import Payment from "../models/payment.model.js";
 import Receipt from "../models/receipt.model.js";
 import User from "../models/user.model.js";
@@ -13,7 +14,10 @@ const postReceipt = async (req, res) => {
       method,
       accountNumber,
       amountPaid,
+      lateFee,
     } = req.body;
+
+    console.log(req.body);
 
     const user = await User.findOne({ uid });
     if (!user) {
@@ -27,6 +31,20 @@ const postReceipt = async (req, res) => {
 
     if (uid.toString() !== payment.tenantUid.toString()) {
       return res.status(400).json({ message: "Don't have authorized in this" });
+    }
+
+    const lease = await Lease.findById(payment.leaseId);
+
+    let appliedLateFee = 0;
+
+    const now = new Date();
+
+    const dueDate = new Date(payment.dueDate);
+    const gracePeriod = new Date(dueDate);
+    gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+    if (now > gracePeriod) {
+      appliedLateFee = lease.lateFee.amount;
     }
 
     const updatedPayment = await Payment.findByIdAndUpdate(
@@ -46,6 +64,7 @@ const postReceipt = async (req, res) => {
       accountNumber,
       amountPaid,
       method,
+      lateFee: appliedLateFee,
     });
 
     res.status(200).json({
@@ -90,8 +109,7 @@ const acceptReceipt = async (req, res) => {
   try {
     const { uid } = req.user;
     const { id } = req.params;
-
-    console.log("Data: ", uid, id);
+    const { lateFee } = req.body;
 
     const user = await User.findOne({ uid });
     if (!user) {
@@ -111,6 +129,7 @@ const acceptReceipt = async (req, res) => {
       status: "Paid",
       datePaid: receipt.transactionDate,
       method: receipt.method,
+      lateFee,
     });
 
     const updatedReceipt = await Receipt.findByIdAndUpdate(id, {

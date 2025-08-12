@@ -8,31 +8,23 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/constants/formatDate";
-import { useUserStore } from "@/store/useUserStore";
-import axios from "axios";
 import { DollarSign } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import { Loading } from "../../Loading";
 import type { PaymentType } from "@/types/paymentTypes";
-import useFetchData from "@/hooks/useFetchData";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
 
 const TenantMakePaymentSummaryCard = ({ token }: { token: string | null }) => {
   const { id } = useParams();
-  const {
-    data: paymentData,
-    loading: isLoading,
-    error,
-  } = useFetchData<PaymentType>(
-    `http://localhost:8080/api/payment/${id}`,
-    token,
-    [id]
-  );
 
-  if (isLoading || !paymentData) {
-    return <Loading />;
-  }
+  const { data, isLoading } = useQuery<PaymentType>({
+    queryKey: ["tenant-paymentMonth", id],
+    queryFn: fetchData("http://localhost:8080/api/payment", token, true),
+    enabled: !!token && !!id,
+  });
+
+  if (isLoading) return <Loading />;
 
   return (
     <Card className="mb-6">
@@ -49,32 +41,26 @@ const TenantMakePaymentSummaryCard = ({ token }: { token: string | null }) => {
               <div>
                 <p className="font-medium">Current Balance</p>
                 <p className="text-sm text-muted-foreground">
-                  Due by {formatDate(paymentData?.dueDate.toString())}
+                  Due by {formatDate(data?.dueDate.toString()!)}
                 </p>
               </div>
             </div>
-            <p className="text-2xl font-bold">
-              ${paymentData?.amount.toFixed(2)}
-            </p>
+            <p className="text-2xl font-bold">${data?.amount.toFixed(2)}</p>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Base Rent</span>
-              <span>${paymentData?.amount.toFixed(2)}</span>
+              <span>${data?.amount.toFixed(2)}</span>
             </div>
-            {/* <div className="flex justify-between">
-                <span className="text-muted-foreground">Late Fee</span>
-                <span>$50.00</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Utilities</span>
-                <span>$0.00</span>
-              </div> */}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Late Fee</span>
+              <span>${data?.lateFee?.toFixed(2)}</span>
+            </div>
             <Separator className="my-2" />
             <div className="flex justify-between font-bold">
               <span>Total Due</span>
-              <span>${paymentData?.amount.toFixed(2)}</span>
+              <span>${data?.totalAmount?.toFixed(2)}</span>
             </div>
           </div>
         </div>

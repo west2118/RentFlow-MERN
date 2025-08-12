@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Plus, History } from "lucide-react";
-import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import { Loading } from "@/components/app/Loading";
 import LandlordPaymentTotalMonthCard from "@/components/app/landlord/payments/LandlordPaymentTotalMonthCard";
@@ -34,8 +33,13 @@ export function LandlordPayments() {
 
   const totalPaid = data
     ?.filter((item) => item.status === "Paid")
-    .reduce((accu, curr) => accu + curr.totalAmount!, 0);
+    .reduce(
+      (accu, curr) => accu + ((curr.totalAmount ?? 0) + (curr.lateFee ?? 0)),
+      0
+    );
   const totalRent = data?.reduce((accu, curr) => accu + curr.totalAmount!, 0);
+
+  console.log(totalPaid);
 
   const totalOverdue = data
     ?.filter((item) => item.status === "Overdue")

@@ -50,6 +50,7 @@ const LandlordPaymentRentDueCard = ({ data }: { data: PaymentType[] }) => {
             <TableRow>
               <TableHead>Unit/Tenant</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>Late Fee</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Receipt</TableHead>

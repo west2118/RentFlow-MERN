@@ -1,7 +1,4 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import type { UnitType } from "@/types/unitTypes";
 import type { UserType } from "@/types/userTypes";

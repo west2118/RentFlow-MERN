@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import useFetchData from "@/hooks/useFetchData";
 import { useForm } from "@/hooks/useForm";
 import { useUserStore } from "@/store/useUserStore";
 import axios from "axios";

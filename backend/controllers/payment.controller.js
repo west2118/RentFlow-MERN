@@ -38,6 +38,10 @@ const getPaymentMonth = async (req, res) => {
     for (const payment of payments) {
       const unit = await Unit.findById(payment.unitId);
       const lease = await Lease.findById(payment.leaseId);
+      const receipt = await Receipt.findOne({
+        paymentId: payment._id,
+        status: { $ne: "Rejected" },
+      });
 
       let tenantName = null;
 
@@ -47,9 +51,9 @@ const getPaymentMonth = async (req, res) => {
       }
 
       let totalAmount = payment.amount;
-      let appliedLateFee = 0;
+      let appliedLateFee = payment.lateFee;
 
-      if (payment.status === "Pending" && payment.dueDate) {
+      if (payment.status !== "Paid" && payment.dueDate) {
         const dueDate = new Date(payment.dueDate);
         const gracePeriod = new Date(dueDate);
         gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
@@ -57,6 +61,9 @@ const getPaymentMonth = async (req, res) => {
         if (now > gracePeriod) {
           appliedLateFee = lease.lateFee.amount;
           totalAmount += appliedLateFee;
+        }
+
+        if (!receipt) {
           payment.status = "Overdue";
         }
       }
@@ -132,9 +139,9 @@ const getTenantPayment = async (req, res) => {
     }).select("method status");
 
     let totalAmount = paymentMonth.amount;
-    let appliedLateFee = 0;
+    let appliedLateFee = paymentMonth.lateFee;
 
-    if (paymentMonth.status === "Pending" && paymentMonth.dueDate) {
+    if (paymentMonth.status !== "Paid" && paymentMonth.dueDate) {
       const dueDate = new Date(paymentMonth.dueDate);
       const gracePeriod = new Date(dueDate);
       gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
@@ -142,6 +149,9 @@ const getTenantPayment = async (req, res) => {
       if (now > gracePeriod) {
         appliedLateFee = lease.lateFee.amount;
         totalAmount += appliedLateFee;
+      }
+
+      if (!receipt) {
         paymentMonth.status = "Overdue";
       }
     }
@@ -170,9 +180,9 @@ const getTenantPayment = async (req, res) => {
       }).select("method status");
 
       let totalAmount = payment.amount;
-      let appliedLateFee = 0;
+      let appliedLateFee = payment.lateFee;
 
-      if (payment.status === "Pending" && payment.dueDate) {
+      if (payment.status !== "Paid" && payment.dueDate) {
         const dueDate = new Date(payment.dueDate);
         const gracePeriod = new Date(dueDate);
         gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
@@ -180,6 +190,9 @@ const getTenantPayment = async (req, res) => {
         if (now > gracePeriod) {
           appliedLateFee = lease.lateFee.amount;
           totalAmount += appliedLateFee;
+        }
+
+        if (!receipt) {
           payment.status = "Overdue";
         }
       }
@@ -214,9 +227,37 @@ const getPayment = async (req, res) => {
     }
 
     const payment = await Payment.findById(id);
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
 
-    res.status(200).json(payment);
+    const lease = await Lease.findById(payment.leaseId);
+
+    const now = new Date();
+    let totalAmount = payment.amount;
+    let appliedLateFee = payment.lateFee;
+
+    if (payment.status !== "Paid" && payment.dueDate) {
+      const dueDate = new Date(payment.dueDate);
+      const gracePeriod = new Date(dueDate);
+      gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+      if (now > gracePeriod) {
+        appliedLateFee = lease.lateFee.amount;
+        totalAmount += appliedLateFee;
+        payment.status = "Overdue";
+      }
+    }
+
+    const paymentMonth = {
+      ...payment.toObject(),
+      totalAmount,
+      lateFee: appliedLateFee,
+    };
+
+    res.status(200).json(paymentMonth);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -325,9 +366,9 @@ const getLandlordPayments = async (req, res) => {
       }
 
       let totalAmount = payment.amount;
-      let appliedLateFee = 0;
+      let appliedLateFee = payment.lateFee;
 
-      if (payment.status === "Pending" && payment.dueDate) {
+      if (payment.status !== "Paid" && payment.dueDate) {
         const dueDate = new Date(payment.dueDate);
         const gracePeriod = new Date(dueDate);
         gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);

@@ -42,8 +42,9 @@ export function LandlordPaymentHistory() {
 
   const totalCollectedAndPayments = (status: string) => {
     const payments = data?.filter((payment) => payment.status === status);
+
     const totalCollected = payments?.reduce(
-      (accu, curr) => accu + curr.amount,
+      (accu, curr) => accu + ((curr.amount ?? 0) + (curr.lateFee ?? 0)),
       0
     );
     const totalPayment = payments?.length;
@@ -54,7 +55,7 @@ export function LandlordPaymentHistory() {
     };
   };
 
-  console.log(data);
+  console.log("Payments Month: ", data);
 
   if (isLoading) return <Loading />;
 
@@ -122,6 +123,7 @@ export function LandlordPaymentHistory() {
                 <TableHead>Tenant</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead>Amount</TableHead>
+                <TableHead>Late Fee</TableHead>
                 <TableHead>Payment Date</TableHead>
                 <TableHead>Method</TableHead>
                 <TableHead>Status</TableHead>

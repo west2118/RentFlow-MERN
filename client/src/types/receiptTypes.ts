@@ -13,4 +13,5 @@ export interface ReceiptType {
   createdAt?: Date;
   updatedAt?: Date;
   method: string;
+  lateFee?: number;
 }

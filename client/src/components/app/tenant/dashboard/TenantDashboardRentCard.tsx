@@ -10,23 +10,29 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/constants/formatDate";
 import { statusPaymentStyle } from "@/constants/statusPaymentStyle";
-import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import type { PaymentType } from "@/types/paymentTypes";
 import { CheckCircle2, DollarSign } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ReceiptModal } from "../../ReceiptModal";
+import { fetchData } from "@/constants/fetchData";
+import { useQuery } from "@tanstack/react-query";
+import type { ReceiptType } from "@/types/receiptTypes";
 
 const TenantDashboardRentCard = ({ payment }: { payment: PaymentType }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
-  const { data } = useFetchData(
-    `http://localhost:8080/api/receipt/${payment?._id}`,
-    token,
-    [payment?._id]
-  );
+
+  const { data } = useQuery<ReceiptType>({
+    queryKey: ["tenant-receipt", payment?._id],
+    queryFn: fetchData("http://localhost:8080/api/receipt", token, true),
+    enabled: !!token && !!payment?._id,
+  });
+
+  console.log("Receipt: ", data);
+  console.log("Payment: ", payment);
 
   return (
     <Card>

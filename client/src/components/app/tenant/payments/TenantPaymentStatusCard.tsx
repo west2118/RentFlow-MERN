@@ -15,7 +15,11 @@ const TenantPaymentStatusCard = ({ status }: { status: string }) => {
         {statusPaymentStyle(status)}
         <Progress value={status === "Paid" ? 100 : 0} className="h-2 mt-2" />
         <p className="text-xs text-muted-foreground mt-1">
-          {status === "Paid" ? "Payment paid" : "Not yet paid"}
+          {status === "Paid"
+            ? "Payment paid"
+            : status === "In Process"
+            ? "The landlord is processing the payment"
+            : "Not yet paid"}
         </p>
       </CardContent>
     </Card>

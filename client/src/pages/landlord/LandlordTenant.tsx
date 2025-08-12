@@ -24,25 +24,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  Search,
-  Mail,
-  Phone,
-  User,
-  Home,
-  FileText,
-  MoreVertical,
-  ChevronDown,
-  CheckCircle2,
-  AlertCircle,
-  DollarSign,
-  Calendar,
-  Building,
-} from "lucide-react";
-import useFetchData from "@/hooks/useFetchData";
-import type { UserType } from "@/types/userTypes";
+import { Search } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import LandlordTenantsTable from "@/components/app/landlord/LandlordTenantsTable";
 import type { UnitType } from "@/types/unitTypes";

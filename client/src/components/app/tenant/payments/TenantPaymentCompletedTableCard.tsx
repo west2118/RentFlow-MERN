@@ -51,6 +51,7 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
             <TableRow>
               <TableHead>Date Paid</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>Late Fee</TableHead>
               <TableHead>Period</TableHead>
               <TableHead>Method</TableHead>
               <TableHead>Status</TableHead>

@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { fetchData } from "@/constants/fetchData";
-import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import type { LeaseType } from "@/types/leaseTypes";
 import type { UnitType } from "@/types/unitTypes";

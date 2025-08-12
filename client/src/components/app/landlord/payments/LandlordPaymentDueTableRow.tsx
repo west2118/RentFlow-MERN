@@ -25,9 +25,8 @@ const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
         <div className="font-medium">Unit {item?.unitNumber}</div>
         <div className="text-sm text-muted-foreground">{item?.tenantName}</div>
       </TableCell>
-      <TableCell>
-        {`$${item?.amount.toFixed(2)} + $${item?.lateFee!.toFixed(2)}`}
-      </TableCell>
+      <TableCell>${item?.amount.toFixed(2)}</TableCell>
+      <TableCell>${item?.lateFee?.toFixed(2) ?? 0}</TableCell>
       <TableCell>
         <div className="flex items-center">
           <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />

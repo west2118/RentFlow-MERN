@@ -17,8 +17,6 @@ import {
 import { CheckCircle2, MessageSquare, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import useFetchData from "@/hooks/useFetchData";
 import { useUserStore } from "@/store/useUserStore";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import TenantMaintenanceTable from "./TenantMaintenanceTable";
