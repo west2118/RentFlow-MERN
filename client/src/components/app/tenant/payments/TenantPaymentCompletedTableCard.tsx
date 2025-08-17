@@ -55,8 +55,7 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
               <TableHead>Period</TableHead>
               <TableHead>Method</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-              <TableHead className="text-right">Receipt</TableHead>
+              <TableHead className="text-end">Receipt</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -70,7 +69,7 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
               ))
             ) : (
               <TenantPaymentCompletedNoData
-                numberOfSpan={6}
+                numberOfSpan={7}
                 label="No completed payments found"
               />
             )}

@@ -26,12 +26,13 @@ import {
   Check,
   Loader,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { toast } from "react-toastify";
 import { LazyImage } from "./LazyImage";
 import DataLoading from "./DataLoading";
 import { paymentMethods } from "@/constants/paymentMethods";
+import { useReactToPrint } from "react-to-print";
 
 type ReceiptModalProps = {
   isModalOpen: true;
@@ -50,6 +51,9 @@ export function ReceiptModal({
   const [data, setData] = useState<ReceiptType | null>(null);
   const [loading, setLoading] = useState(true);
   const [isButtonsLoading, setIsButtonsLoading] = useState(false);
+
+  const printPayment = useRef<HTMLDivElement>(null);
+  const printReceipt = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!payment?._id || !token) return;
@@ -92,7 +96,15 @@ export function ReceiptModal({
     };
   }, [isModalOpen]);
 
-  console.log("Receiptt: ", data);
+  const handlePrintPayment = useReactToPrint({
+    contentRef: printPayment, // Correctly reference the element to print
+    documentTitle: "Payment Receipt",
+  });
+
+  const handlePrintReceipt = useReactToPrint({
+    contentRef: printReceipt, // Correctly reference the element to print
+    documentTitle: "Payment Receipt",
+  });
 
   const handleAcceptReceipt = async (status: string) => {
     setIsButtonsLoading(true);
@@ -166,7 +178,9 @@ export function ReceiptModal({
             </div>
           </Card>
         ) : (
-          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto hide-scrollbar">
+          <div
+            ref={printPayment}
+            className="p-6 space-y-6 max-h-[70vh] overflow-y-auto hide-scrollbar print:max-h-none print:overflow-visible">
             {/* Payment Status Badge */}
             <div className="flex justify-between items-center">
               {statusPaymentStyle(payment?.status)}
@@ -252,31 +266,6 @@ export function ReceiptModal({
               </CardContent>
             </Card>
 
-            {/* Receipt Preview */}
-            {/* <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Receipt Document
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 h-64">
-                <div className="bg-white p-6 rounded shadow-sm border w-full h-full flex flex-col items-center justify-center">
-                  <FileText className="h-12 w-12 text-primary mb-4" />
-                  <p className="font-medium">payment_receipt_052024.pdf</p>
-                  <p className="text-sm text-muted-foreground">2.4 MB</p>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-center">
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Download Receipt
-              </Button>
-            </CardFooter>
-          </Card> */}
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -285,12 +274,15 @@ export function ReceiptModal({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-lg overflow-hidden">
+                <div className="overflow-hidden" ref={printReceipt}>
                   <LazyImage src={data?.fileUrl} alt="Payment receipt" />
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between items-center">
-                <Button variant="outline" size="sm">
+                <Button
+                  onClick={handlePrintReceipt}
+                  variant="outline"
+                  size="sm">
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
@@ -337,7 +329,7 @@ export function ReceiptModal({
               </Button>
             </div>
           ) : data ? (
-            <Button>
+            <Button onClick={handlePrintPayment}>
               <Download className="h-4 w-4 mr-1" />
               Download Receipt
             </Button>

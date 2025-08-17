@@ -34,7 +34,7 @@ const TenantPaymentCompletedTableRow = ({
           : "-"}
       </TableCell>
       <TableCell>{statusPaymentStyle(payment?.status)}</TableCell>
-      <TableCell>
+      <TableCell className="flex justify-end">
         {payment?.status === "Paid" ||
         (payment?.receipt && payment?.receipt.status !== "Rejected") ? (
           <Button
@@ -55,11 +55,6 @@ const TenantPaymentCompletedTableRow = ({
             Make Payment
           </Button>
         )}
-      </TableCell>
-      <TableCell className="text-right">
-        <Button variant="ghost" size="icon">
-          <Download className="h-4 w-4" />
-        </Button>
       </TableCell>
     </TableRow>
   );
