@@ -1,7 +1,7 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import React from "react";
 
-const TenantPaymentCompletedNoData = ({
+const NoDataFound = ({
   numberOfSpan,
   label,
 }: {
@@ -31,4 +31,4 @@ const TenantPaymentCompletedNoData = ({
   );
 };
 
-export default TenantPaymentCompletedNoData;
+export default NoDataFound;

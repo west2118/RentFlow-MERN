@@ -17,8 +17,6 @@ import { ReceiptModal } from "../../ReceiptModal";
 const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  console.log(item);
-
   return (
     <TableRow>
       <TableCell>

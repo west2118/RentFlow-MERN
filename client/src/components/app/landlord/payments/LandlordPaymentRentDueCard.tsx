@@ -25,11 +25,46 @@ import {
   CalendarDays,
   Bell,
   MoreVertical,
+  X,
 } from "lucide-react";
 import type { PaymentType } from "@/types/paymentTypes";
 import LandlordPaymentDueTableRow from "./LandlordPaymentDueTableRow";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Pagination from "../../Pagination";
 
-const LandlordPaymentRentDueCard = ({ data }: { data: PaymentType[] }) => {
+type LandlordPaymentRentDueCard = {
+  payments: PaymentType[];
+  total: number;
+  page: number;
+  totalPages: number;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  limit: number;
+  setStatus: React.Dispatch<React.SetStateAction<string>>;
+  status: string;
+  search: string;
+};
+
+const LandlordPaymentRentDueCard = ({
+  payments,
+  total,
+  page,
+  totalPages,
+  setSearch,
+  setPage,
+  limit,
+  setStatus,
+  status,
+  search,
+}: LandlordPaymentRentDueCard) => {
+  console.log("Payments: ", payments);
+
   return (
     <Card>
       <CardHeader>
@@ -38,9 +73,39 @@ const LandlordPaymentRentDueCard = ({ data }: { data: PaymentType[] }) => {
             <CardTitle>Rent Due</CardTitle>
             <CardDescription>Payments due this month</CardDescription>
           </div>
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search payments..." className="pl-9" />
+          <div className="flex space-x-4">
+            <Select value={status} onValueChange={(value) => setStatus(value)}>
+              <SelectTrigger className="w-34">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Overdue">Overdue</SelectItem>
+                <SelectItem value="In Process">In Process</SelectItem>
+                <SelectItem value="Paid">Paid</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search requests..."
+                className="pl-9"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -58,27 +123,23 @@ const LandlordPaymentRentDueCard = ({ data }: { data: PaymentType[] }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.map((item) => (
+            {payments?.map((item) => (
               <LandlordPaymentDueTableRow key={item?._id} item={item} />
             ))}
           </TableBody>
         </Table>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="text-sm text-muted-foreground">
-          Showing <span className="font-medium">1</span> to{" "}
-          <span className="font-medium">3</span> of{" "}
-          <span className="font-medium">9</span> payments
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            Previous
-          </Button>
-          <Button variant="outline" size="sm">
-            Next
-          </Button>
-        </div>
-      </CardFooter>
+      {payments && payments?.length > 0 && (
+        <CardFooter className="flex justify-between">
+          <Pagination
+            limit={limit}
+            page={page}
+            total={total}
+            totalPages={totalPages}
+            setPage={setPage}
+          />
+        </CardFooter>
+      )}
     </Card>
   );
 };

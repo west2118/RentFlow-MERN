@@ -13,7 +13,16 @@ const getUnitWithLeaseStatus = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const units = await Unit.find({ landlordUid: uid });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+    const status = req.query.status;
+    const search = req.query.search;
+
+    const query = { landlordUid: uid };
+
+    const total = await Unit.countDocuments(query);
+    const units = await Unit.find(query).skip(skip).limit(limit);
 
     const getUnitWithLeaseStatus = [];
 
@@ -38,7 +47,26 @@ const getUnitWithLeaseStatus = async (req, res) => {
       });
     }
 
-    res.status(200).json(getUnitWithLeaseStatus);
+    let filteredUnits = status
+      ? getUnitWithLeaseStatus.filter((u) => u.status === status)
+      : getUnitWithLeaseStatus;
+
+    if (search) {
+      filteredUnits = filteredUnits.filter(
+        (u) =>
+          u.name?.toLowerCase().includes(search.toLowerCase()) ||
+          u.address?.toLowerCase().includes(search.toLowerCase()) ||
+          u.unitNumber?.toLowerCase().includes(search.toLowerCase()) ||
+          u.tenantName?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    res.status(200).json({
+      units: filteredUnits,
+      total: filteredUnits.length,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

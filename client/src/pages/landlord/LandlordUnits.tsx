@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import LandlordUnitCard from "@/components/app/landlord/LandlordUnitCard";
 import type { UnitType } from "@/types/unitTypes";
@@ -9,11 +9,21 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/constants/fetchData";
 import LandlordNoUnitsFound from "@/components/app/landlord/units/LandlordNoUnitsFound";
 import LandlordUnitCardSkeleton from "@/components/app/landlord/units/LandlordUnitCardSkeleton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { InviteTenantModal } from "@/components/app/landlord/InviteTenantModal";
 import { UnitDetailsModal } from "@/components/app/UnitDetailsModal";
 import { LeaseDetailsModal } from "@/components/app/LeaseDetailsModal";
 import type { LeaseType } from "@/types/leaseTypes";
+import { Input } from "@/components/ui/input";
+import Pagination from "@/components/app/Pagination";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
+
+type DataProps = {
+  units: UnitType[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
 
 export function LandlordUnits() {
   const navigate = useNavigate();
@@ -23,13 +33,22 @@ export function LandlordUnits() {
   >(null);
   const [selectedUnit, setSelectedUnit] = useState<UnitType | null>(null);
 
-  const { data, isLoading } = useQuery<UnitType[]>({
-    queryKey: ["units"],
-    queryFn: fetchData("http://localhost:8080/api/unit", token),
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [tab, setTab] = useState("all");
+  const [page, setPage] = useState(1);
+  const limit = 6;
+
+  const { data, isLoading } = useQuery<DataProps>({
+    queryKey: ["units", page, limit, tab, debouncedSearch],
+    queryFn: fetchData(
+      `http://localhost:8080/api/unit?page=${page}&limit=${limit}${
+        tab !== "all" ? `&status=${tab}` : ""
+      }${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
+      token
+    ),
     enabled: !!token,
   });
-
-  console.log("DATA: ", data);
 
   const handleOpenModal = (
     unit: UnitType,
@@ -37,6 +56,26 @@ export function LandlordUnits() {
   ) => {
     setIsModalOpenType(type);
     setSelectedUnit(unit);
+  };
+
+  const renderUnits = (emptyMessage: string) => {
+    if (isLoading) {
+      return [...Array(3)].map((_, index) => (
+        <LandlordUnitCardSkeleton key={index} />
+      ));
+    }
+
+    if (!data || data?.units.length === 0) {
+      return <LandlordNoUnitsFound label={emptyMessage} />;
+    }
+
+    return data?.units.map((item) => (
+      <LandlordUnitCard
+        key={item._id}
+        item={item}
+        handleOpenModal={handleOpenModal}
+      />
+    ));
   };
 
   return (
@@ -49,88 +88,72 @@ export function LandlordUnits() {
         </Button>
       </div>
 
-      <Tabs defaultValue="all">
-        <TabsList className="grid grid-cols-3 w-[400px] mb-6">
-          <TabsTrigger value="all">All Units</TabsTrigger>
-          <TabsTrigger value="available">Available</TabsTrigger>
-          <TabsTrigger value="occupied">Occupied</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="all" onValueChange={setTab}>
+        <div className="flex items-start justify-between">
+          <TabsList className="grid grid-cols-3 w-[400px] mb-6">
+            <TabsTrigger value="all">All Units</TabsTrigger>
+            <TabsTrigger value="Available">Available</TabsTrigger>
+            <TabsTrigger value="Occupied">Occupied</TabsTrigger>
+          </TabsList>
+
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search units..."
+              className="pl-9 bg-white"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
 
         <TabsContent value="all">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading ? (
-              <>
-                {[...Array(3)].map((_, index) => (
-                  <LandlordUnitCardSkeleton key={index} />
-                ))}
-              </>
-            ) : data && data?.length > 0 ? (
-              data?.map((item) => (
-                <LandlordUnitCard
-                  key={item._id}
-                  item={item}
-                  handleOpenModal={handleOpenModal}
-                />
-              ))
-            ) : (
-              <LandlordNoUnitsFound
-                label="You haven't added any units yet. Start by adding your first property
-                        to manage leases and tenants."
-              />
+            {renderUnits(
+              "You haven't added any units yet. Start by adding your first property to manage leases and tenants."
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="available">
+        <TabsContent value="Available">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading ? (
-              <>
-                {[...Array(3)].map((_, index) => (
-                  <LandlordUnitCardSkeleton key={index} />
-                ))}
-              </>
-            ) : data &&
-              data?.filter((item) => item.status === "Available").length > 0 ? (
-              data
-                ?.filter((item) => item.status === "Available")
-                .map((item) => (
-                  <LandlordUnitCard
-                    key={item._id}
-                    item={item}
-                    handleOpenModal={handleOpenModal}
-                  />
-                ))
-            ) : (
-              <LandlordNoUnitsFound label="No available units at the moment. All units are currently occupied." />
+            {renderUnits(
+              "No available units at the moment. All units are currently occupied."
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="occupied">
+        <TabsContent value="Occupied">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading ? (
-              <>
-                {[...Array(3)].map((_, index) => (
-                  <LandlordUnitCardSkeleton key={index} />
-                ))}
-              </>
-            ) : data &&
-              data?.filter((item) => item.status === "Occupied").length > 0 ? (
-              data
-                ?.filter((item) => item.status === "Occupied")
-                .map((item) => (
-                  <LandlordUnitCard
-                    key={item._id}
-                    item={item}
-                    handleOpenModal={handleOpenModal}
-                  />
-                ))
-            ) : (
-              <LandlordNoUnitsFound label="No occupied units right now. All units are currently available." />
+            {renderUnits(
+              "No occupied units right now. All units are currently available."
             )}
           </div>
         </TabsContent>
       </Tabs>
+
+      {data && data.units.length > 0 && (
+        <div className="flex justify-between mt-8">
+          <Pagination
+            limit={limit}
+            page={page}
+            total={data?.total}
+            totalPages={data?.totalPages}
+            setPage={setPage}
+          />
+        </div>
+      )}
 
       {selectedUnit && isModalOpenType === "invite" && (
         <InviteTenantModal

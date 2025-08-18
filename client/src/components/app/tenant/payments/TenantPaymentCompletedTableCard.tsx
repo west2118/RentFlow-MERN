@@ -18,9 +18,9 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { PaymentType } from "@/types/paymentTypes";
 import TenantPaymentCompletedTableRow from "./TenantPaymentCompletedTableRow";
-import TenantPaymentCompletedNoData from "./TenantPaymentCompletedNoData";
 import { ReceiptModal } from "../../ReceiptModal";
 import { useState } from "react";
+import NoDataFoundTable from "../../NoDataFoundTable";
 
 const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -68,7 +68,7 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
                 />
               ))
             ) : (
-              <TenantPaymentCompletedNoData
+              <NoDataFoundTable
                 numberOfSpan={7}
                 label="No completed payments found"
               />

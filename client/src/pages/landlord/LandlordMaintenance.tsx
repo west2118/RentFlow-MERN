@@ -16,7 +16,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import LandlordMaintenanceTable from "@/components/app/landlord/maintenance/LandlordMaintenanceTable";
@@ -26,6 +26,24 @@ import { fetchData } from "@/constants/fetchData";
 import { useState } from "react";
 import LandlordManageRequestModal from "@/components/app/landlord/maintenance/LandlordManageRequestModal";
 import { MaintenanceModalDetails } from "@/components/app/MaintenanceModalDetails";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
+import NoDataFoundTable from "@/components/app/NoDataFoundTable";
+import { LandlordTenantTableRowSkeleton } from "@/components/app/landlord/tenants/LandlordTenantTableRowSkeleton";
+import Pagination from "@/components/app/Pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type DataProps = {
+  maintenances: MaintenanceType[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
 
 export function LandlordMaintenance() {
   const token = useUserStore((state) => state.userToken);
@@ -38,13 +56,22 @@ export function LandlordMaintenance() {
     null
   );
 
-  const { data, isLoading } = useQuery<MaintenanceType[]>({
-    queryKey: ["landlord-maintenance"],
-    queryFn: fetchData("http://localhost:8080/api/landlord-maintenance", token),
+  const [status, setStatus] = useState("All");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading } = useQuery<DataProps>({
+    queryKey: ["landlord-maintenance", page, limit, debouncedSearch, status],
+    queryFn: fetchData(
+      `http://localhost:8080/api/landlord-maintenance?page=${page}${
+        status !== "All" ? `&status=${status}` : ""
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
+      token
+    ),
     enabled: !!token,
   });
-
-  console.log("Dataaaaa: ", data);
 
   const handleOpenModal = (
     status: "In Progress" | "Completed",
@@ -60,9 +87,7 @@ export function LandlordMaintenance() {
     setSelectedItem(item);
   };
 
-  if (isLoading) {
-    return <Loading />;
-  }
+  console.log(status);
 
   return (
     <main className="p-6">
@@ -80,9 +105,40 @@ export function LandlordMaintenance() {
                 Recent maintenance issues reported by tenants
               </CardDescription>
             </div>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search requests..." className="pl-9" />
+            <div className="flex space-x-4">
+              <Select
+                value={status}
+                onValueChange={(value) => setStatus(value)}>
+                <SelectTrigger className="w-34">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search requests..."
+                  className="pl-9"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -98,8 +154,10 @@ export function LandlordMaintenance() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data && data.length > 0 ? (
-                data?.map((item) => (
+              {isLoading ? (
+                <LandlordTenantTableRowSkeleton />
+              ) : data && data?.maintenances.length > 0 ? (
+                data?.maintenances.map((item) => (
                   <LandlordMaintenanceTable
                     key={item._id}
                     item={item}
@@ -108,32 +166,25 @@ export function LandlordMaintenance() {
                   />
                 ))
               ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center py-6 text-sm text-muted-foreground">
-                    No maintenance records found
-                  </TableCell>
-                </TableRow>
+                <NoDataFoundTable
+                  numberOfSpan={5}
+                  label="No maintenance records found"
+                />
               )}
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">1</span> to{" "}
-            <span className="font-medium">3</span> of{" "}
-            <span className="font-medium">7</span> requests
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              Previous
-            </Button>
-            <Button variant="outline" size="sm">
-              Next
-            </Button>
-          </div>
-        </CardFooter>
+        {data && data?.maintenances.length > 0 && (
+          <CardFooter className="flex justify-between">
+            <Pagination
+              limit={limit}
+              page={page}
+              total={data?.total}
+              totalPages={data?.totalPages}
+              setPage={setPage}
+            />
+          </CardFooter>
+        )}
       </Card>
 
       {isModalOpen && selectedItem && selectedStatus && (

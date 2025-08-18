@@ -25,59 +25,125 @@ const getPaymentMonth = async (req, res) => {
       999
     );
 
-    const payments = await Payment.find({
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const status = req.query.status;
+    const search = req.query.search;
+
+    const query = {
       landlordUid: uid,
       dueDate: {
         $gte: startOfMonth,
         $lte: endOfMonth,
       },
-    });
+    };
 
-    const getPaymentWithUserUnit = [];
+    const total = await Payment.countDocuments(query);
 
-    for (const payment of payments) {
-      const unit = await Unit.findById(payment.unitId);
-      const lease = await Lease.findById(payment.leaseId);
-      const receipt = await Receipt.findOne({
-        paymentId: payment._id,
-        status: { $ne: "Rejected" },
-      });
+    const allPayments = await Payment.find(query);
+    const payments = await Payment.find(query).skip(skip).limit(limit);
 
-      let tenantName = null;
+    const enrichPayments = async (paymentsList) => {
+      const enriched = [];
 
-      if (payment?.tenantUid) {
-        const tenant = await User.findOne({ uid: payment.tenantUid });
-        tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : null;
-      }
+      for (const payment of paymentsList) {
+        const unit = await Unit.findById(payment.unitId);
+        const lease = await Lease.findById(payment.leaseId);
+        const receipt = await Receipt.findOne({
+          paymentId: payment._id,
+          status: { $ne: "Rejected" },
+        });
 
-      let totalAmount = payment.amount;
-      let appliedLateFee = payment.lateFee;
+        let tenantName = null;
 
-      if (payment.status !== "Paid" && payment.dueDate) {
-        const dueDate = new Date(payment.dueDate);
-        const gracePeriod = new Date(dueDate);
-        gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
-
-        if (now > gracePeriod) {
-          appliedLateFee = lease.lateFee.amount;
-          totalAmount += appliedLateFee;
+        if (payment?.tenantUid) {
+          const tenant = await User.findOne({ uid: payment.tenantUid });
+          tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : null;
         }
 
-        if (!receipt) {
-          payment.status = "Overdue";
+        let totalAmount = payment.amount;
+        let appliedLateFee = payment.lateFee;
+
+        if (payment.status !== "Paid" && payment.dueDate) {
+          const dueDate = new Date(payment.dueDate);
+          const gracePeriod = new Date(dueDate);
+          gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+
+          if (now > gracePeriod) {
+            appliedLateFee = lease.lateFee.amount;
+            totalAmount += appliedLateFee;
+          }
+
+          if (!receipt) {
+            payment.status = "Overdue";
+          }
         }
+
+        enriched.push({
+          ...payment.toObject(),
+          unitNumber: unit.unitNumber,
+          tenantName,
+          lateFee: appliedLateFee,
+          totalAmount,
+        });
       }
 
-      getPaymentWithUserUnit.push({
-        ...payment.toObject(),
-        unitNumber: unit.unitNumber,
-        tenantName,
-        lateFee: appliedLateFee,
-        totalAmount,
-      });
+      return enriched;
+    };
+
+    const allPaymentsEnriched = await enrichPayments(allPayments);
+    let paginatedPayments = await enrichPayments(payments);
+
+    let filteredPayments = status
+      ? paginatedPayments.filter((u) => u.status === status)
+      : paginatedPayments;
+
+    if (search) {
+      filteredPayments = filteredPayments.filter(
+        (u) =>
+          u.tenantName?.toLowerCase().includes(search.toLowerCase()) ||
+          u.unitNumber?.toLowerCase().includes(search.toLowerCase())
+      );
     }
 
-    res.status(200).json(getPaymentWithUserUnit);
+    const totalDue = allPaymentsEnriched
+      ?.filter((item) => item.status === "Pending" || item.status === "Overdue")
+      .reduce((accu, curr) => accu + curr.totalAmount, 0);
+    const totalUnits = allPaymentsEnriched?.filter(
+      (item) => item.status === "Pending" || item.status === "Overdue"
+    ).length;
+
+    const totalPaid = allPaymentsEnriched
+      ?.filter((item) => item.status === "Paid")
+      .reduce(
+        (accu, curr) => accu + ((curr.totalAmount ?? 0) + (curr.lateFee ?? 0)),
+        0
+      );
+    const totalRent = allPaymentsEnriched?.reduce(
+      (accu, curr) => accu + curr.totalAmount,
+      0
+    );
+
+    const totalOverdue = allPaymentsEnriched
+      ?.filter((item) => item.status === "Overdue")
+      .reduce((accu, curr) => accu + curr.totalAmount, 0);
+    const totalUnitOverdue = allPaymentsEnriched?.filter(
+      (item) => item.status === "Overdue"
+    ).length;
+
+    res.status(200).json({
+      totalDue,
+      totalUnits,
+      totalPaid,
+      totalRent,
+      totalOverdue,
+      totalUnitOverdue,
+      payments: filteredPayments,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });

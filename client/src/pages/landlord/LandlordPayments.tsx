@@ -9,48 +9,47 @@ import LandlordPaymentRentDueCard from "@/components/app/landlord/payments/Landl
 import LandlordPaymentActionsCard from "@/components/app/landlord/payments/LandlordPaymentActionsCard";
 import type { PaymentType } from "@/types/paymentTypes";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/constants/fetchData";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
+import { useState } from "react";
+
+type DataType = {
+  totalDue: number;
+  totalUnits: number;
+  totalPaid: number;
+  totalRent: number;
+  totalOverdue: number;
+  totalUnitOverdue: number;
+  payments: PaymentType[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
 
 export function LandlordPayments() {
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
 
-  const { data, isLoading } = useQuery<PaymentType[]>({
-    queryKey: ["payments-month"],
-    queryFn: fetchData("http://localhost:8080/api/payments-month", token),
+  const [status, setStatus] = useState("All");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading } = useQuery<DataType>({
+    queryKey: ["payments-month", page, limit, status, debouncedSearch],
+    queryFn: fetchData(
+      `http://localhost:8080/api/payments-month?page=${page}${
+        status !== "All" ? `&status=${status}` : ""
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
+      token
+    ),
     enabled: !!token,
+    placeholderData: keepPreviousData,
   });
 
-  console.log("API data:", data);
-
-  const totalDue = data
-    ?.filter((item) => item.status === "Pending" || item.status === "Overdue")
-    .reduce((accu, curr) => accu + curr.totalAmount!, 0);
-  const totalUnits = data?.filter(
-    (item) => item.status === "Pending" || item.status === "Overdue"
-  ).length;
-
-  const totalPaid = data
-    ?.filter((item) => item.status === "Paid")
-    .reduce(
-      (accu, curr) => accu + ((curr.totalAmount ?? 0) + (curr.lateFee ?? 0)),
-      0
-    );
-  const totalRent = data?.reduce((accu, curr) => accu + curr.totalAmount!, 0);
-
-  console.log(totalPaid);
-
-  const totalOverdue = data
-    ?.filter((item) => item.status === "Overdue")
-    .reduce((accu, curr) => accu + curr.totalAmount!, 0);
-  const totalUnitOverdue = data?.filter(
-    (item) => item.status === "Overdue"
-  ).length;
-
-  if (isLoading) {
-    return <Loading />;
-  }
+  console.log(status);
 
   return (
     <main className="p-6">
@@ -73,23 +72,34 @@ export function LandlordPayments() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Payment Summary Cards */}
         <LandlordPaymentTotalMonthCard
-          totalDue={totalDue}
-          totalUnits={totalUnits}
+          totalDue={data?.totalDue}
+          totalUnits={data?.totalUnits}
         />
 
         <LandlordPaymentCollectedCard
-          totalPaid={totalPaid}
-          totalRent={totalRent}
+          totalPaid={data?.totalPaid}
+          totalRent={data?.totalRent}
         />
 
         <LandlordPaymentTotalOverdue
-          totalOverdue={totalOverdue}
-          totalUnitOverdue={totalUnitOverdue}
+          totalOverdue={data?.totalOverdue}
+          totalUnitOverdue={data?.totalUnitOverdue}
         />
       </div>
 
       {/* Rent Due List */}
-      <LandlordPaymentRentDueCard data={data!} />
+      <LandlordPaymentRentDueCard
+        setSearch={setSearch}
+        setPage={setPage}
+        limit={limit}
+        setStatus={setStatus}
+        status={status}
+        search={search}
+        payments={data?.payments ?? []}
+        total={data?.total ?? 0}
+        page={data?.page ?? 0}
+        totalPages={data?.totalPages ?? 0}
+      />
 
       {/* Payment Actions */}
       {/* <LandlordPaymentActionsCard /> */}

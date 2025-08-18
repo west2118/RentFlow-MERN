@@ -21,11 +21,11 @@ import { useUserStore } from "@/store/useUserStore";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import TenantMaintenanceTable from "./TenantMaintenanceTable";
 import { Loading } from "../../Loading";
-import TenantPaymentCompletedNoData from "../payments/TenantPaymentCompletedNoData";
 import { fetchData } from "@/constants/fetchData";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { MaintenanceModalDetails } from "../../MaintenanceModalDetails";
+import NoDataFoundTable from "../../NoDataFoundTable";
 
 const TenantMaintenanceHistoryCard = () => {
   const [isModalDetailsOpen, setIsModalDetailsOpen] = useState<boolean>(false);
@@ -86,7 +86,7 @@ const TenantMaintenanceHistoryCard = () => {
                 />
               ))
             ) : (
-              <TenantPaymentCompletedNoData
+              <NoDataFoundTable
                 numberOfSpan={5}
                 label="No maintenance request found"
               />

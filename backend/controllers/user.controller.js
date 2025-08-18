@@ -134,9 +134,20 @@ const getLandlordTenants = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const units = await Unit.find({ landlordUid: uid, status: "Occupied" });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search;
 
-    const getTenants = [];
+    const total = await Unit.countDocuments({
+      landlordUid: uid,
+      status: "Occupied",
+    });
+    const units = await Unit.find({ landlordUid: uid, status: "Occupied" })
+      .skip(skip)
+      .limit(limit);
+
+    let getTenants = [];
 
     for (const unit of units) {
       const [activeLease, tenant] = await Promise.all([
@@ -155,7 +166,22 @@ const getLandlordTenants = async (req, res) => {
       });
     }
 
-    res.status(200).json(getTenants);
+    if (search) {
+      getTenants = getTenants.filter(
+        (u) =>
+          u.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+          u.lastName?.toLowerCase().includes(search.toLowerCase()) ||
+          u.unitNumber?.toLowerCase().includes(search.toLowerCase()) ||
+          u.tenantName?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    res.status(200).json({
+      tenants: getTenants,
+      total: getTenants.length,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
