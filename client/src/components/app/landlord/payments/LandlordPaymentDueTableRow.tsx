@@ -14,7 +14,13 @@ import {
 import React, { useState } from "react";
 import { ReceiptModal } from "../../ReceiptModal";
 
-const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
+const LandlordPaymentDueTableRow = ({
+  item,
+  handleOpenModal,
+}: {
+  item: PaymentType;
+  handleOpenModal: (tenantUid: string, fullName: string) => void;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   return (
@@ -45,7 +51,12 @@ const LandlordPaymentDueTableRow = ({ item }: { item: PaymentType }) => {
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end space-x-1">
-          <Button variant="ghost" size="icon">
+          <Button
+            onClick={() =>
+              handleOpenModal(item?.tenantUid ?? "", item?.tenantName ?? "")
+            }
+            variant="ghost"
+            size="icon">
             <Bell className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon">

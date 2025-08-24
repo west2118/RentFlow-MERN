@@ -13,6 +13,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/constants/fetchData";
 import { useDebounceInput } from "@/hooks/useDebounceInput";
 import { useState } from "react";
+import PaymentLoadingSkeleton from "@/components/app/PaymentLoadingSkeleton";
+import WithSkeleton from "@/constants/WithSkeleton";
+import PaymentLoadingSkeletonWithProgress from "@/components/app/PaymentLoadingSkeletonWithProgress";
 
 type DataType = {
   totalDue: number;
@@ -49,8 +52,6 @@ export function LandlordPayments() {
     placeholderData: keepPreviousData,
   });
 
-  console.log(status);
-
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -71,20 +72,32 @@ export function LandlordPayments() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Payment Summary Cards */}
-        <LandlordPaymentTotalMonthCard
-          totalDue={data?.totalDue}
-          totalUnits={data?.totalUnits}
-        />
+        <WithSkeleton
+          isLoading={isLoading}
+          skeleton={<PaymentLoadingSkeleton />}>
+          <LandlordPaymentTotalMonthCard
+            totalDue={data?.totalDue}
+            totalUnits={data?.totalUnits}
+          />
+        </WithSkeleton>
 
-        <LandlordPaymentCollectedCard
-          totalPaid={data?.totalPaid}
-          totalRent={data?.totalRent}
-        />
+        <WithSkeleton
+          isLoading={isLoading}
+          skeleton={<PaymentLoadingSkeletonWithProgress />}>
+          <LandlordPaymentCollectedCard
+            totalPaid={data?.totalPaid}
+            totalRent={data?.totalRent}
+          />
+        </WithSkeleton>
 
-        <LandlordPaymentTotalOverdue
-          totalOverdue={data?.totalOverdue}
-          totalUnitOverdue={data?.totalUnitOverdue}
-        />
+        <WithSkeleton
+          isLoading={isLoading}
+          skeleton={<PaymentLoadingSkeleton />}>
+          <LandlordPaymentTotalOverdue
+            totalOverdue={data?.totalOverdue}
+            totalUnitOverdue={data?.totalUnitOverdue}
+          />
+        </WithSkeleton>
       </div>
 
       {/* Rent Due List */}
@@ -99,6 +112,7 @@ export function LandlordPayments() {
         total={data?.total ?? 0}
         page={data?.page ?? 0}
         totalPages={data?.totalPages ?? 0}
+        isLoading={isLoading}
       />
 
       {/* Payment Actions */}

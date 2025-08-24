@@ -8,8 +8,8 @@ const LandlordPaymentHistoryPaymentCards = ({
   description,
 }: {
   totalCollectedAndPayments: {
-    totalCollected: number | undefined;
-    totalPayment: number | undefined;
+    totalAmount: number;
+    totalLength: number;
   };
   title: string;
   icon: LucideIcon;
@@ -27,10 +27,10 @@ const LandlordPaymentHistoryPaymentCards = ({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">
-          ${totalCollectedAndPayments?.totalCollected?.toFixed(2)}
+          ${totalCollectedAndPayments?.totalAmount?.toFixed(2)}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          From {totalCollectedAndPayments?.totalPayment} {description}
+          From {totalCollectedAndPayments?.totalLength} {description}
         </p>
       </CardContent>
     </Card>

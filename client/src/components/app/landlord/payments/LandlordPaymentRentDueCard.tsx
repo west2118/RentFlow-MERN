@@ -37,6 +37,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Pagination from "../../Pagination";
+import { LandlordTenantTableRowSkeleton } from "../tenants/LandlordTenantTableRowSkeleton";
+import NoDataFoundTable from "../../NoDataFoundTable";
+import { NotificationCreateModal } from "../../NotificationCreateModal";
+import { useState } from "react";
 
 type LandlordPaymentRentDueCard = {
   payments: PaymentType[];
@@ -49,6 +53,7 @@ type LandlordPaymentRentDueCard = {
   setStatus: React.Dispatch<React.SetStateAction<string>>;
   status: string;
   search: string;
+  isLoading: boolean;
 };
 
 const LandlordPaymentRentDueCard = ({
@@ -62,8 +67,23 @@ const LandlordPaymentRentDueCard = ({
   setStatus,
   status,
   search,
+  isLoading,
 }: LandlordPaymentRentDueCard) => {
-  console.log("Payments: ", payments);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [tenant, setTenant] = useState("");
+  const [tenantFullName, setTenantFullName] = useState("");
+
+  const handleOpenModal = (tenantUid: string, fullName: string) => {
+    setIsModalOpen(true);
+    setTenant(tenantUid);
+    setTenantFullName(fullName);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTenant("");
+    setTenantFullName("");
+  };
 
   return (
     <Card>
@@ -123,9 +143,22 @@ const LandlordPaymentRentDueCard = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {payments?.map((item) => (
-              <LandlordPaymentDueTableRow key={item?._id} item={item} />
-            ))}
+            {isLoading ? (
+              <LandlordTenantTableRowSkeleton />
+            ) : payments && payments.length > 0 ? (
+              payments?.map((item) => (
+                <LandlordPaymentDueTableRow
+                  key={item?._id}
+                  item={item}
+                  handleOpenModal={handleOpenModal}
+                />
+              ))
+            ) : (
+              <NoDataFoundTable
+                numberOfSpan={7}
+                label="No payment records found"
+              />
+            )}
           </TableBody>
         </Table>
       </CardContent>
@@ -139,6 +172,15 @@ const LandlordPaymentRentDueCard = ({
             setPage={setPage}
           />
         </CardFooter>
+      )}
+
+      {isModalOpen && (
+        <NotificationCreateModal
+          isModalOpen={isModalOpen}
+          onCloseModal={handleCloseModal}
+          fullName={tenantFullName}
+          tenantUid={tenant}
+        />
       )}
     </Card>
   );

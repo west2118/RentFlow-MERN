@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import { formatDate } from "@/constants/formatDate";
 import type { UnitType } from "@/types/unitTypes";
 import DataLoading from "./DataLoading";
+import ReactDOM from "react-dom";
 
 type LeaseDetailsModalProps = {
   isModalOpen: boolean;
@@ -94,7 +95,7 @@ export function LeaseDetailsModal({
   const modalRoot = document.getElementById("modal-root");
   if (!modalRoot) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div
       onClick={isCloseModal}
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -306,6 +307,7 @@ export function LeaseDetailsModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    modalRoot
   );
 }
