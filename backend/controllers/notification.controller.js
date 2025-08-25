@@ -4,21 +4,20 @@ import User from "../models/user.model.js";
 const postNotification = async (req, res) => {
   try {
     const { uid } = req.user;
-    const { tenantUid, title, message, type } = req.body;
+    const { userId, title, message, type } = req.body;
 
     const user = await User.find({ uid });
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const tenant = await User.find({ uid: tenantUid });
-    if (!tenant) {
+    const receiver = await User.find({ uid: userId });
+    if (!receiver) {
       return res.status(400).json({ message: "Tenant didn't exist" });
     }
 
     const newNotification = await Notification.create({
-      landlordUid: uid,
-      tenantUid,
+      userId,
       title,
       message,
       type,
@@ -33,4 +32,25 @@ const postNotification = async (req, res) => {
   }
 };
 
-export { postNotification };
+const readNotifications = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.find({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    await Notification.updateMany(
+      {
+        userId: uid,
+        read: false,
+      },
+      { $set: { read: true } }
+    );
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update notifications" });
+  }
+};
+
+export { postNotification, readNotifications };

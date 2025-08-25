@@ -47,6 +47,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { LandlordTenantTableRowSkeleton } from "@/components/app/landlord/tenants/LandlordTenantTableRowSkeleton";
 import NoDataFoundTable from "@/components/app/NoDataFoundTable";
+import { paymentStatusArray } from "@/constants/paymentStatusArray";
 
 type DataType = {
   page: number;
@@ -172,11 +173,11 @@ export function LandlordPaymentHistory() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Overdue">Overdue</SelectItem>
-                  <SelectItem value="In Process">In Process</SelectItem>
-                  <SelectItem value="Paid">Paid</SelectItem>
+                  {paymentStatusArray.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <div className="relative w-64">
@@ -237,6 +238,7 @@ export function LandlordPaymentHistory() {
             </TableBody>
           </Table>
         </CardContent>
+
         {data?.payments && data?.payments?.length > 0 && (
           <CardFooter className="flex justify-between">
             <Pagination

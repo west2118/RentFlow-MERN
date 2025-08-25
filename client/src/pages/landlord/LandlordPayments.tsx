@@ -114,9 +114,6 @@ export function LandlordPayments() {
         totalPages={data?.totalPages ?? 0}
         isLoading={isLoading}
       />
-
-      {/* Payment Actions */}
-      {/* <LandlordPaymentActionsCard /> */}
     </main>
   );
 }

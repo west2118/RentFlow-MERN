@@ -41,6 +41,7 @@ import { LandlordTenantTableRowSkeleton } from "../tenants/LandlordTenantTableRo
 import NoDataFoundTable from "../../NoDataFoundTable";
 import { NotificationCreateModal } from "../../NotificationCreateModal";
 import { useState } from "react";
+import { paymentStatusArray } from "@/constants/paymentStatusArray";
 
 type LandlordPaymentRentDueCard = {
   payments: PaymentType[];
@@ -94,16 +95,20 @@ const LandlordPaymentRentDueCard = ({
             <CardDescription>Payments due this month</CardDescription>
           </div>
           <div className="flex space-x-4">
+            <Button variant="default">
+              <Bell className="w-4 h-4" />
+              Remind All
+            </Button>
             <Select value={status} onValueChange={(value) => setStatus(value)}>
               <SelectTrigger className="w-34">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Overdue">Overdue</SelectItem>
-                <SelectItem value="In Process">In Process</SelectItem>
-                <SelectItem value="Paid">Paid</SelectItem>
+                {paymentStatusArray.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <div className="relative w-64">

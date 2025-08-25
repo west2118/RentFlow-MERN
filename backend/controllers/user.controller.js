@@ -1,5 +1,6 @@
 import Invite from "../models/invite.model.js";
 import Lease from "../models/lease.model.js";
+import Notification from "../models/notification.model.js";
 import Payment from "../models/payment.model.js";
 import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
@@ -104,7 +105,11 @@ const getUser = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    res.status(200).json(user);
+    const notifications = await Notification.find({
+      userId: uid,
+    });
+
+    res.status(200).json({ user, notifications });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

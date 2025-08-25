@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 const NotificationSchema = mongoose.Schema(
   {
-    landlordUid: { type: String, required: true },
-    tenantUid: { type: String, required: true },
+    userId: { type: String, required: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
     read: { type: Boolean, default: false },

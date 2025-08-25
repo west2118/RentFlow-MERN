@@ -59,9 +59,6 @@ const LandlordPaymentDueTableRow = ({
             size="icon">
             <Bell className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
         </div>
       </TableCell>
 

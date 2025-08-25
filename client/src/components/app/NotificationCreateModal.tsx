@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Bell, X } from "lucide-react";
+import { Bell, Loader, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,7 +64,7 @@ export const NotificationCreateModal = ({
         `http://localhost:8080/api/notification`,
         {
           ...formData,
-          tenantUid,
+          userId: tenantUid,
         },
         {
           headers: {
@@ -73,14 +73,13 @@ export const NotificationCreateModal = ({
         }
       );
 
+      onCloseModal();
       toast.success(response.data.message);
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message);
     } finally {
       setIsLoading(false);
     }
-
-    console.log(formData);
   };
 
   const modalRoot = document.getElementById("modal-root");
@@ -178,11 +177,17 @@ export const NotificationCreateModal = ({
 
           {/* Footer */}
           <div className="flex justify-end gap-2 p-6 border-t">
-            <Button onClick={onCloseModal} variant="outline">
+            <Button
+              disabled={isLoading}
+              onClick={onCloseModal}
+              variant="outline">
               Cancel
             </Button>
-            <Button className="bg-black text-white hover:bg-gray-800">
-              Send Notification
+            <Button
+              disabled={isLoading}
+              className="bg-black text-white hover:bg-gray-800">
+              {isLoading ? <Loader className="animate-spin h-5 w-5" /> : ""}Send
+              Notification
             </Button>
           </div>
         </form>
