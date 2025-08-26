@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle2, MessageSquare, Search } from "lucide-react";
+import { CheckCircle2, MessageSquare, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/useUserStore";
@@ -26,6 +26,26 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { MaintenanceModalDetails } from "../../MaintenanceModalDetails";
 import NoDataFoundTable from "../../NoDataFoundTable";
+import { LandlordTenantTableRowSkeleton } from "../../landlord/tenants/LandlordTenantTableRowSkeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { paymentStatusArray } from "@/constants/paymentStatusArray";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
+import Pagination from "../../Pagination";
+import { maintenanceTypes } from "@/constants/maintenanceStatus";
+import TenantMaintenanceSkeletonLoading from "./TenantMaintenanceSkeletonLoading";
+
+type DataType = {
+  maintenances: MaintenanceType[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
 
 const TenantMaintenanceHistoryCard = () => {
   const [isModalDetailsOpen, setIsModalDetailsOpen] = useState<boolean>(false);
@@ -34,34 +54,69 @@ const TenantMaintenanceHistoryCard = () => {
   );
   const token = useUserStore((state) => state.userToken);
 
-  const { data, isLoading } = useQuery<MaintenanceType[]>({
-    queryKey: ["tenant-unit-lease-maintenance-payment"],
-    queryFn: fetchData("http://localhost:8080/api/tenant-maintenance", token),
+  const [status, setStatus] = useState("All");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading } = useQuery<DataType>({
+    queryKey: ["tenant-maintenance", page, limit, debouncedSearch, status],
+    queryFn: fetchData(
+      `http://localhost:8080/api/tenant-maintenance?page=${page}${
+        status !== "All" ? `&status=${status}` : ""
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
+      token
+    ),
     enabled: !!token,
   });
-
-  console.log(data);
 
   const handleOpenDetailsModal = (item: MaintenanceType) => {
     setIsModalDetailsOpen(true);
     setSelectedItem(item);
   };
 
-  if (isLoading) {
-    return <Loading />;
-  }
-
   return (
     <Card className="lg:col-span-3">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <div className="space-y-1">
+          <div>
             <CardTitle>Request History</CardTitle>
             <CardDescription>All Past maintenance requests</CardDescription>
           </div>
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search requests..." className="pl-9" />
+          <div className="flex space-x-4">
+            <Select value={status} onValueChange={(value) => setStatus(value)}>
+              <SelectTrigger className="w-34">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {maintenanceTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search requests..."
+                className="pl-9"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -77,8 +132,10 @@ const TenantMaintenanceHistoryCard = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data && data.length > 0 ? (
-              data?.map((item) => (
+            {isLoading ? (
+              <TenantMaintenanceSkeletonLoading />
+            ) : data && data?.maintenances.length > 0 ? (
+              data?.maintenances.map((item) => (
                 <TenantMaintenanceTable
                   key={item._id}
                   item={item}
@@ -88,27 +145,22 @@ const TenantMaintenanceHistoryCard = () => {
             ) : (
               <NoDataFoundTable
                 numberOfSpan={5}
-                label="No maintenance request found"
+                label="No maintenance records found"
               />
             )}
           </TableBody>
         </Table>
       </CardContent>
-      {data && data.length > 0 && (
+
+      {data && data?.maintenances.length > 0 && (
         <CardFooter className="flex justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">1</span> to{" "}
-            <span className="font-medium">2</span> of{" "}
-            <span className="font-medium">5</span> requests
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              Previous
-            </Button>
-            <Button variant="outline" size="sm">
-              Next
-            </Button>
-          </div>
+          <Pagination
+            limit={limit}
+            page={page}
+            total={data?.total}
+            totalPages={data?.totalPages}
+            setPage={setPage}
+          />
         </CardFooter>
       )}
 

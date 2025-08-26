@@ -4,7 +4,11 @@ import { Progress } from "@/components/ui/progress";
 import { statusPaymentStyle } from "@/constants/statusPaymentStyle";
 import { CalendarDays, CheckCircle2, Clock, DollarSign } from "lucide-react";
 
-const TenantPaymentStatusCard = ({ status }: { status: string }) => {
+const TenantPaymentStatusCard = ({
+  status,
+}: {
+  status: string | undefined;
+}) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">

@@ -60,18 +60,34 @@ export const NotificationCreateModal = ({
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        `http://localhost:8080/api/notification`,
-        {
-          ...formData,
-          userId: tenantUid,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      let response;
+
+      if (tenantUid === "all") {
+        response = await axios.post(
+          `http://localhost:8080/api/notification-all`,
+          {
+            ...formData,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        response = await axios.post(
+          `http://localhost:8080/api/notification`,
+          {
+            ...formData,
+            userId: tenantUid,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
 
       onCloseModal();
       toast.success(response.data.message);
@@ -118,7 +134,9 @@ export const NotificationCreateModal = ({
         <div className="px-6 py-3 border-b">
           <p className="text-sm font-medium text-gray-700">
             Send To:{" "}
-            <span className="font-semibold text-gray-900">{fullName}</span>
+            <span className="font-semibold text-gray-900">
+              {tenantUid === "all" ? "All Tenants" : fullName}
+            </span>
           </p>
         </div>
 

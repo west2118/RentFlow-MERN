@@ -74,9 +74,9 @@ const LandlordPaymentRentDueCard = ({
   const [tenant, setTenant] = useState("");
   const [tenantFullName, setTenantFullName] = useState("");
 
-  const handleOpenModal = (tenantUid: string, fullName: string) => {
+  const handleOpenModal = (targetValue: string, fullName: string = "") => {
     setIsModalOpen(true);
-    setTenant(tenantUid);
+    setTenant(targetValue);
     setTenantFullName(fullName);
   };
 
@@ -95,7 +95,7 @@ const LandlordPaymentRentDueCard = ({
             <CardDescription>Payments due this month</CardDescription>
           </div>
           <div className="flex space-x-4">
-            <Button variant="default">
+            <Button onClick={() => handleOpenModal("all")} variant="default">
               <Bell className="w-4 h-4" />
               Remind All
             </Button>

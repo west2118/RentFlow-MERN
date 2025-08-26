@@ -229,12 +229,24 @@ const getTenantPayment = async (req, res) => {
       receipt: receipt ? receipt : null,
     };
 
-    const completedPayment = await Payment.find({
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const status = req.query.status;
+    const search = req.query.search;
+
+    const query = {
       tenantUid: uid,
       dueDate: {
         $lte: new Date(),
       },
-    }).sort({ dueDate: -1 });
+    };
+
+    const total = await Payment.countDocuments(query);
+    const completedPayment = await Payment.find(query)
+      .sort({ dueDate: -1 })
+      .skip(skip)
+      .limit(limit);
 
     let paymentHistory = [];
 
@@ -271,10 +283,25 @@ const getTenantPayment = async (req, res) => {
       });
     }
 
+    let filteredPayments = status
+      ? paymentHistory.filter((u) => u.status === status)
+      : paymentHistory;
+
+    if (search) {
+      filteredPayments = filteredPayments.filter(
+        (u) =>
+          u.method?.toLowerCase().includes(search.toLowerCase()) ||
+          u.amount?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
     res.status(200).json({
       paymentMonth: payment,
-      completedPayment: paymentHistory,
       nextMonthPayment,
+      completedPayment: filteredPayments,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     console.log(error);

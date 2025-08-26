@@ -3,7 +3,11 @@ import { formatDate } from "@/constants/formatDate";
 import type { PaymentType } from "@/types/paymentTypes";
 import { CalendarDays, DollarSign } from "lucide-react";
 
-const TenantPaymentNextMonthCard = ({ item }: { item: PaymentType }) => {
+const TenantPaymentNextMonthCard = ({
+  item,
+}: {
+  item: PaymentType | undefined;
+}) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">

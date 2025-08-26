@@ -63,9 +63,36 @@ const getTenantMaintenance = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const maintenances = await Maintenance.find({ tenantUid: uid });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+    const search = req.query.search;
+    const status = req.query.status;
 
-    res.status(200).json(maintenances);
+    const query = { tenantUid: uid };
+    if (search) {
+      query.$or = [
+        { issueType: { $regex: search, $options: "i" } },
+        {
+          requestName: { $regex: search, $options: "i" },
+        },
+        { unitNumber: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const total = await Unit.countDocuments(query);
+    const maintenances = await Maintenance.find(query).skip(skip).limit(limit);
+
+    let filteredMaintenances = status
+      ? maintenances.filter((s) => s.status === status)
+      : maintenances;
+
+    res.status(200).json({
+      maintenances: filteredMaintenances,
+      total: filteredMaintenances.length,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

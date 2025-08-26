@@ -32,32 +32,30 @@ const TenantMaintenanceTable = ({
           : "Technician notes will appear here once completed"}
       </TableCell>
       <TableCell className="text-right space-x-2">
-        <Button variant="ghost" size="icon">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleOpenDetailsModal(item)}>
-                <Eye className="mr-1 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  navigate(`/tenant/maintenance-request/edit/${item._id}`)
-                }>
-                <Pencil className="mr-1 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Trash2 className="mr-1 h-4 w-4 text-red-500" />
-                <span className="text-red-500">Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleOpenDetailsModal(item)}>
+              <Eye className="mr-1 h-4 w-4" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                navigate(`/tenant/maintenance-request/edit/${item._id}`)
+              }>
+              <Pencil className="mr-1 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Trash2 className="mr-1 h-4 w-4 text-red-500" />
+              <span className="text-red-500">Delete</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );

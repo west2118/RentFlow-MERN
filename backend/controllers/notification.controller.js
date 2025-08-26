@@ -1,4 +1,5 @@
 import Notification from "../models/notification.model.js";
+import Payment from "../models/payment.model.js";
 import User from "../models/user.model.js";
 
 const postNotification = async (req, res) => {
@@ -32,6 +33,47 @@ const postNotification = async (req, res) => {
   }
 };
 
+const postRemindersNotification = async (req, res) => {
+  try {
+    const { uid } = req.user;
+    const { title, message, type } = req.body;
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    const payments = await Payment.find({
+      landlordUid: uid,
+      dueDate: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    });
+
+    const notifications = payments.map((payment) => ({
+      userId: payment.tenantUid,
+      title,
+      message,
+      type,
+    }));
+
+    await Notification.insertMany(notifications);
+
+    res.status(200).json({ message: "Reminder send to all tenant" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const readNotifications = async (req, res) => {
   try {
     const { uid } = req.user;
@@ -53,4 +95,4 @@ const readNotifications = async (req, res) => {
   }
 };
 
-export { postNotification, readNotifications };
+export { postNotification, postRemindersNotification, readNotifications };

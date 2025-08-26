@@ -14,15 +14,53 @@ import {
   TableHead,
   TableBody,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { PaymentType } from "@/types/paymentTypes";
 import TenantPaymentCompletedTableRow from "./TenantPaymentCompletedTableRow";
 import { ReceiptModal } from "../../ReceiptModal";
 import { useState } from "react";
 import NoDataFoundTable from "../../NoDataFoundTable";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { paymentStatusArray } from "@/constants/paymentStatusArray";
+import Pagination from "../../Pagination";
+import { LandlordTenantTableRowSkeleton } from "../../landlord/tenants/LandlordTenantTableRowSkeleton";
+import TenantMaintenanceSkeletonLoading from "../maintenance/TenantMaintenanceSkeletonLoading";
+import TenantPaymentCompletedTableRowSkeleton from "./TenantPaymentCompletedTableRowSkeleton";
 
-const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
+type TenantPaymentCompletedTableCardProps = {
+  item: PaymentType[];
+  total: number;
+  page: number;
+  totalPages: number;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  limit: number;
+  setStatus: React.Dispatch<React.SetStateAction<string>>;
+  status: string;
+  search: string;
+  isLoading: boolean;
+};
+
+const TenantPaymentCompletedTableCard = ({
+  item,
+  total,
+  page,
+  totalPages,
+  setSearch,
+  setPage,
+  limit,
+  setStatus,
+  status,
+  search,
+  isLoading,
+}: TenantPaymentCompletedTableCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<PaymentType | null>(null);
 
@@ -39,9 +77,39 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
             <CardTitle>Payment History</CardTitle>
             <CardDescription>Your past rent payments</CardDescription>
           </div>
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search payments..." className="pl-9" />
+          <div className="flex space-x-4">
+            <Select value={status} onValueChange={(value) => setStatus(value)}>
+              <SelectTrigger className="w-34">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {paymentStatusArray.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search requests..."
+                className="pl-9"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -59,38 +127,35 @@ const TenantPaymentCompletedTableCard = ({ item }: { item: PaymentType[] }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {item.length > 0 ? (
-              item?.map((payment) => (
+            {isLoading ? (
+              <TenantPaymentCompletedTableRowSkeleton />
+            ) : item && item.length > 0 ? (
+              item?.map((item) => (
                 <TenantPaymentCompletedTableRow
-                  key={payment._id}
-                  payment={payment}
+                  key={item._id}
+                  payment={item}
                   handleOpenModal={handleOpenModal}
                 />
               ))
             ) : (
               <NoDataFoundTable
                 numberOfSpan={7}
-                label="No completed payments found"
+                label="No payment records found"
               />
             )}
           </TableBody>
         </Table>
       </CardContent>
-      {item?.length > 0 && (
+
+      {item && item?.length > 0 && (
         <CardFooter className="flex justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">1</span> to{" "}
-            <span className="font-medium">3</span> of{" "}
-            <span className="font-medium">12</span> payments
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              Previous
-            </Button>
-            <Button variant="outline" size="sm">
-              Next
-            </Button>
-          </div>
+          <Pagination
+            limit={limit}
+            page={page}
+            total={total}
+            totalPages={totalPages}
+            setPage={setPage}
+          />
         </CardFooter>
       )}
 

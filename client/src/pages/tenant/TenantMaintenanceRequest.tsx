@@ -18,9 +18,6 @@ const TenantMaintenanceRequest = () => {
 
       {/* Request History Table */}
       <TenantMaintenanceHistoryCard />
-
-      {/* Active Requests */}
-      {/* <TenantMaintenanceActiveRequestCard /> */}
     </main>
   );
 };
