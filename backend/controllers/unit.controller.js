@@ -93,6 +93,25 @@ const getUserUnitLeasePaymentAndMaintenance = async (req, res) => {
       999
     );
 
+    const lease = await Lease.findOne({
+      isActive: true,
+      tenantUid: user.uid,
+    });
+
+    const maintenance = await Maintenance.find({
+      tenantUid: uid,
+    })
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    if (lease.leaseEnd && lease.leaseEnd < now) {
+      return res.status(200).json({
+        message: "Lease expired",
+        lease: { ...lease.toObject(), status: "expired" },
+        maintenance,
+      });
+    }
+
     const paymentMonth = await Payment.findOne({
       tenantUid: uid,
       dueDate: {
@@ -102,18 +121,6 @@ const getUserUnitLeasePaymentAndMaintenance = async (req, res) => {
     });
 
     const unit = await Unit.findById(user.unitId);
-
-    const lease = await Lease.findOne({
-      isActive: true,
-      tenantUid: user.uid,
-      unitId: user.unitId,
-    });
-
-    const maintenance = await Maintenance.find({
-      tenantUid: uid,
-    })
-      .sort({ createdAt: -1 })
-      .limit(3);
 
     let totalAmount = paymentMonth.amount;
     let appliedLateFee = 0;
@@ -151,16 +158,25 @@ const getUserUnitAndLease = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const unit = await Unit.findById(user.unitId);
-
+    const now = new Date();
     const lease = await Lease.findOne({
       isActive: true,
       tenantUid: user.uid,
       unitId: user.unitId,
     });
 
+    if (lease.leaseEnd && lease.leaseEnd < now) {
+      return res.status(200).json({
+        message: "Lease expired",
+        lease: { ...lease.toObject(), status: "expired" },
+      });
+    }
+
+    const unit = await Unit.findById(user.unitId);
+
     res.status(200).json({ unit, lease });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

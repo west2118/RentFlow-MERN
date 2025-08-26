@@ -10,9 +10,31 @@ import type { UnitType } from "@/types/unitTypes";
 import { Home } from "lucide-react";
 import React, { useState } from "react";
 import { UnitDetailsModal } from "../../UnitDetailsModal";
+import ExpiredLeaseContent from "../ExpiredLeaseContent";
 
-const TenantDashboardUnitCard = ({ unit }: { unit: UnitType }) => {
+const TenantDashboardUnitCard = ({
+  unit,
+  status,
+}: {
+  unit: UnitType | undefined;
+  status: string;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  if (status === "expired") {
+    // ⬅️ No data case
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">My Unit</CardTitle>
+          <Home className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent className="flex-1">
+          <ExpiredLeaseContent />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -39,7 +61,7 @@ const TenantDashboardUnitCard = ({ unit }: { unit: UnitType }) => {
         </Button>
       </CardFooter>
 
-      {isModalOpen && (
+      {isModalOpen && unit && (
         <UnitDetailsModal
           isModalOpen={isModalOpen}
           isCloseModal={() => setIsModalOpen(false)}

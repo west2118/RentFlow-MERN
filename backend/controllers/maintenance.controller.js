@@ -3,6 +3,7 @@ import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import Lease from "../models/lease.model.js";
 dotenv.config({ path: [".env.local", ".env"] });
 
 const postMaintenanceRequest = async (req, res) => {
@@ -63,6 +64,11 @@ const getTenantMaintenance = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
+    const lease = await Lease.findOne({
+      isActive: true,
+      tenantUid: user.uid,
+    });
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 6;
     const skip = (page - 1) * limit;
@@ -87,7 +93,18 @@ const getTenantMaintenance = async (req, res) => {
       ? maintenances.filter((s) => s.status === status)
       : maintenances;
 
-    res.status(200).json({
+    const now = new Date();
+    if (lease.leaseEnd && lease.leaseEnd < now) {
+      return res.status(200).json({
+        lease: { ...lease.toObject(), status: "expired" },
+        maintenances: filteredMaintenances,
+        total: filteredMaintenances.length,
+        page,
+        totalPages: Math.ceil(total / limit),
+      });
+    }
+
+    return res.status(200).json({
       maintenances: filteredMaintenances,
       total: filteredMaintenances.length,
       page,

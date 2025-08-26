@@ -12,8 +12,15 @@ import type { LeaseType } from "@/types/leaseTypes";
 import { Download, FileText } from "lucide-react";
 import { useState } from "react";
 import { LeaseDetailsModal } from "../../LeaseDetailsModal";
+import ExpiredLeaseContent from "../ExpiredLeaseContent";
 
-const TenantUnitLeaseInfoCard = ({ lease }: { lease: LeaseType }) => {
+const TenantUnitLeaseInfoCard = ({
+  lease,
+  status,
+}: {
+  lease: LeaseType | undefined;
+  status: string;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   return (
@@ -23,46 +30,61 @@ const TenantUnitLeaseInfoCard = ({ lease }: { lease: LeaseType }) => {
         <CardDescription>Your current rental agreement details</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 flex-1">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Lease Start</span>
-          <span className="text-end">{formatDate(lease?.leaseStart)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Lease End</span>
-          <span className="text-end">{formatDate(lease?.leaseEnd)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Monthly Rent</span>
-          <span className="text-end">${lease?.rentAmount.toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Security Deposit</span>
-          <span className="text-end">${lease?.securityDeposit.toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Payment Schedule</span>
-          <span className="text-end">{lease?.paymentSchedule}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Late Fee</span>
-          <span>
-            ${lease?.lateFee?.amount.toFixed(2)} after{" "}
-            {lease?.lateFee?.afterDays} days
-          </span>
-        </div>
+        {status === "expired" ? (
+          <div className="flex-1">
+            <ExpiredLeaseContent />
+          </div>
+        ) : lease && lease?.status !== "expired" ? (
+          <>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Lease Start</span>
+              <span className="text-end">{formatDate(lease?.leaseStart!)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Lease End</span>
+              <span className="text-end">{formatDate(lease?.leaseEnd!)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Monthly Rent</span>
+              <span className="text-end">${lease?.rentAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Security Deposit</span>
+              <span className="text-end">
+                ${lease?.securityDeposit.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Payment Schedule</span>
+              <span className="text-end">{lease?.paymentSchedule}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Late Fee</span>
+              <span>
+                ${lease?.lateFee?.amount.toFixed(2)} after{" "}
+                {lease?.lateFee?.afterDays} days
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="text-center text-gray-500">No unit assigned.</div>
+        )}
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button onClick={() => setIsModalOpen(true)} variant="outline">
-          <FileText className="h-4 w-4 mr-2" />
-          View Full Lease
-        </Button>
-        <Button>
-          <Download className="h-4 w-4 mr-2" />
-          Download PDF
-        </Button>
-      </CardFooter>
 
-      {isModalOpen && (
+      {status !== "expired" && (
+        <CardFooter className="flex justify-between">
+          <Button onClick={() => setIsModalOpen(true)} variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            View Full Lease
+          </Button>
+          <Button>
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+        </CardFooter>
+      )}
+
+      {isModalOpen && lease && (
         <LeaseDetailsModal
           isModalOpen={isModalOpen}
           isCloseModal={() => setIsModalOpen(false)}

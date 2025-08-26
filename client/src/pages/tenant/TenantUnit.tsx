@@ -53,10 +53,16 @@ const TenantUnit = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Unit Details Card */}
-        {data?.unit && <TenantUnitDetailsCards unit={data?.unit} />}
+        <TenantUnitDetailsCards
+          unit={data?.unit}
+          status={data?.lease.status ?? ""}
+        />
 
         {/* Lease Information Card */}
-        {data?.lease && <TenantUnitLeaseInfoCard lease={data?.lease} />}
+        <TenantUnitLeaseInfoCard
+          lease={data?.lease}
+          status={data?.lease.status ?? ""}
+        />
 
         {/* Rules & Regulations Card */}
         <Card className="md:col-span-2">

@@ -190,6 +190,8 @@ const getTenantPayment = async (req, res) => {
       },
     });
 
+    const lease = await Lease.findById(paymentMonth.leaseId);
+
     const nextMonthPayment = await Payment.findOne({
       tenantUid: uid,
       dueDate: {
@@ -198,7 +200,6 @@ const getTenantPayment = async (req, res) => {
       },
     });
 
-    const lease = await Lease.findById(paymentMonth.leaseId);
     const receipt = await Receipt.findOne({
       paymentId: paymentMonth._id,
       status: { $ne: "Rejected" },
@@ -295,7 +296,17 @@ const getTenantPayment = async (req, res) => {
       );
     }
 
-    res.status(200).json({
+    if (lease.leaseEnd && lease.leaseEnd < now) {
+      return res.status(200).json({
+        lease: { ...lease.toObject(), status: "expired" },
+        completedPayment: filteredPayments,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      });
+    }
+
+    return res.status(200).json({
       paymentMonth: payment,
       nextMonthPayment,
       completedPayment: filteredPayments,

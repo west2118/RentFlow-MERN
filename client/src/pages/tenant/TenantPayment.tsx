@@ -11,8 +11,10 @@ import { useState } from "react";
 import { useDebounceInput } from "@/hooks/useDebounceInput";
 import WithSkeleton from "@/constants/WithSkeleton";
 import PaymentLoadingSkeleton from "@/components/app/PaymentLoadingSkeleton";
+import type { LeaseType } from "@/types/leaseTypes";
 
 type DataType = {
+  lease?: LeaseType;
   paymentMonth: PaymentType;
   completedPayment: PaymentType[];
   nextMonthPayment: PaymentType;
@@ -52,19 +54,28 @@ const TenantPayment = () => {
         <WithSkeleton
           isLoading={isLoading}
           skeleton={<PaymentLoadingSkeleton />}>
-          <TenantPaymentCurrentDueCard item={data?.paymentMonth} />
+          <TenantPaymentCurrentDueCard
+            item={data?.paymentMonth}
+            expired={data?.lease?.status ?? ""}
+          />
         </WithSkeleton>
 
         <WithSkeleton
           isLoading={isLoading}
           skeleton={<PaymentLoadingSkeleton />}>
-          <TenantPaymentStatusCard status={data?.paymentMonth.status} />
+          <TenantPaymentStatusCard
+            status={data?.paymentMonth ? data?.paymentMonth.status : ""}
+            expired={data?.lease?.status ?? ""}
+          />
         </WithSkeleton>
 
         <WithSkeleton
           isLoading={isLoading}
           skeleton={<PaymentLoadingSkeleton />}>
-          <TenantPaymentNextMonthCard item={data?.nextMonthPayment} />
+          <TenantPaymentNextMonthCard
+            item={data?.nextMonthPayment}
+            expired={data?.lease?.status ?? ""}
+          />
         </WithSkeleton>
       </div>
 

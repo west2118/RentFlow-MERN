@@ -27,25 +27,37 @@ const TenantDashbordContent = () => {
     enabled: !!token,
   });
 
+  console.log("Dashboard Data: ", data);
+
   if (isLoading) return <Loading />;
 
   return (
     <main className="p-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* My Unit Card */}
-        {data?.unit && <TenantDashboardUnitCard unit={data?.unit} />}
+        <TenantDashboardUnitCard
+          unit={data?.unit}
+          status={data?.lease?.status ?? ""}
+        />
 
         {/* Rent Status Card */}
-        {data?.payment && <TenantDashboardRentCard payment={data?.payment} />}
+        <TenantDashboardRentCard
+          payment={data?.payment!}
+          status={data?.lease?.status ?? ""}
+        />
 
         {/* Lease Info Card */}
-        {data?.lease && <TenantDashboardLeaseCard lease={data?.lease} />}
+        <TenantDashboardLeaseCard
+          lease={data?.lease}
+          status={data?.lease?.status ?? ""}
+        />
       </div>
 
       {/* Maintenance Requests */}
-      {data?.maintenance && (
-        <TenantDashboardMaintenanceRequests maintenance={data?.maintenance} />
-      )}
+
+      <TenantDashboardMaintenanceRequests
+        maintenance={data?.maintenance ?? []}
+      />
     </main>
   );
 };

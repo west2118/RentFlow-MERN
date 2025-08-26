@@ -11,9 +11,33 @@ import type { LeaseType } from "@/types/leaseTypes";
 import { FileText } from "lucide-react";
 import { useState } from "react";
 import { LeaseDetailsModal } from "../../LeaseDetailsModal";
+import ExpiredLeaseContent from "../ExpiredLeaseContent";
 
-const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
+const TenantDashboardLeaseCard = ({
+  lease,
+  status,
+}: {
+  lease: LeaseType | undefined;
+  status: string;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  if (status === "expired") {
+    // ⬅️ No data case
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">
+            Lease Information
+          </CardTitle>
+          <FileText className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent className="flex-1">
+          <ExpiredLeaseContent />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -24,11 +48,11 @@ const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
       <CardContent className="flex-1">
         <div className="flex justify-between text-sm mb-2">
           <span className="text-muted-foreground">Start Date</span>
-          <span>{formatDate(lease?.leaseStart)}</span>
+          <span>{formatDate(lease?.leaseStart!)}</span>
         </div>
         <div className="flex justify-between text-sm mb-2">
           <span className="text-muted-foreground">End Date</span>
-          <span>{formatDate(lease?.leaseEnd)}</span>
+          <span>{formatDate(lease?.leaseEnd!)}</span>
         </div>
         <div className="flex justify-between text-sm mb-2">
           <span className="text-muted-foreground">Monthly Rent</span>
@@ -48,7 +72,7 @@ const TenantDashboardLeaseCard = ({ lease }: { lease: LeaseType }) => {
         </Button>
       </CardFooter>
 
-      {isModalOpen && (
+      {isModalOpen && lease && (
         <LeaseDetailsModal
           isModalOpen={isModalOpen}
           isCloseModal={() => setIsModalOpen(false)}

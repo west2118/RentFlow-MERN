@@ -17,4 +17,5 @@ export type LeaseType = {
     amount: number;
     afterDays: number;
   };
+  status?: string;
 };

@@ -12,15 +12,22 @@ import { formatDate } from "@/constants/formatDate";
 import { statusPaymentStyle } from "@/constants/statusPaymentStyle";
 import { useUserStore } from "@/store/useUserStore";
 import type { PaymentType } from "@/types/paymentTypes";
-import { CheckCircle2, DollarSign } from "lucide-react";
+import { Calendar, CheckCircle2, DollarSign, Home } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ReceiptModal } from "../../ReceiptModal";
 import { fetchData } from "@/constants/fetchData";
 import { useQuery } from "@tanstack/react-query";
 import type { ReceiptType } from "@/types/receiptTypes";
+import ExpiredLeaseContent from "../ExpiredLeaseContent";
 
-const TenantDashboardRentCard = ({ payment }: { payment: PaymentType }) => {
+const TenantDashboardRentCard = ({
+  payment,
+  status,
+}: {
+  payment: PaymentType;
+  status: string;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const token = useUserStore((state) => state.userToken);
@@ -31,8 +38,20 @@ const TenantDashboardRentCard = ({ payment }: { payment: PaymentType }) => {
     enabled: !!token && !!payment?._id,
   });
 
-  console.log("Receipt: ", data);
-  console.log("Payment: ", payment);
+  if (status === "expired") {
+    // ⬅️ No lease / expired lease case
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Rent Status</CardTitle>
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent className="flex-1">
+          <ExpiredLeaseContent />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -75,7 +94,7 @@ const TenantDashboardRentCard = ({ payment }: { payment: PaymentType }) => {
         )}
       </CardFooter>
 
-      {isModalOpen && (
+      {isModalOpen && payment && (
         <ReceiptModal
           isModalOpen={isModalOpen}
           isCloseModal={() => setIsModalOpen(false)}

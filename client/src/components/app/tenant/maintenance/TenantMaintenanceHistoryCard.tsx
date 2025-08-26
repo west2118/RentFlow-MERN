@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle2, MessageSquare, Search, X } from "lucide-react";
+import { CheckCircle2, MessageSquare, Plus, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/useUserStore";
@@ -39,8 +39,11 @@ import { useDebounceInput } from "@/hooks/useDebounceInput";
 import Pagination from "../../Pagination";
 import { maintenanceTypes } from "@/constants/maintenanceStatus";
 import TenantMaintenanceSkeletonLoading from "./TenantMaintenanceSkeletonLoading";
+import { useNavigate } from "react-router-dom";
+import type { LeaseType } from "@/types/leaseTypes";
 
 type DataType = {
+  lease?: LeaseType;
   maintenances: MaintenanceType[];
   total: number;
   page: number;
@@ -48,6 +51,7 @@ type DataType = {
 };
 
 const TenantMaintenanceHistoryCard = () => {
+  const navigate = useNavigate();
   const [isModalDetailsOpen, setIsModalDetailsOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<MaintenanceType | null>(
     null
@@ -85,6 +89,13 @@ const TenantMaintenanceHistoryCard = () => {
             <CardDescription>All Past maintenance requests</CardDescription>
           </div>
           <div className="flex space-x-4">
+            {data && data?.lease?.status !== "expired" && (
+              <Button
+                onClick={() => navigate("/tenant/maintenance-request/create")}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Request
+              </Button>
+            )}
             <Select value={status} onValueChange={(value) => setStatus(value)}>
               <SelectTrigger className="w-34">
                 <SelectValue placeholder="Status" />
