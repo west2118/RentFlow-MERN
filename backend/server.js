@@ -19,6 +19,7 @@ import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import receiptRoutes from "./routes/receiptRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import documentRoutes from "./routes/documentRoutes.js";
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./serviceAccountKey.json");
@@ -44,3 +45,4 @@ app.use("/api", maintenanceRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api", receiptRoutes);
 app.use("/api", notificationRoutes);
+app.use("/api", documentRoutes);

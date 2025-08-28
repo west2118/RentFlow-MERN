@@ -1,3 +1,4 @@
+import ProfileSettings from "@/components/app/shared/ProfileSettings";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,25 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import {
-  User,
-  Mail,
-  Phone,
-  Bell,
-  BellOff,
-  AlertTriangle,
-  Trash2,
-  Save,
-  ChevronDown,
-} from "lucide-react";
+import { User, Mail, Phone, Save } from "lucide-react";
 
 export function LandlordSettings() {
   return (
@@ -41,66 +24,10 @@ export function LandlordSettings() {
 
       <div className="grid grid-cols-1 gap-6">
         {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <div className="flex items-center space-x-2">
-                <User className="h-5 w-5" />
-                <span>Profile Information</span>
-              </div>
-            </CardTitle>
-            <CardDescription>Update your personal details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="John" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Doe" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <Input
-                  id="email"
-                  type="email"
-                  defaultValue="john.doe@example.com"
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <Input
-                  id="phone"
-                  type="tel"
-                  defaultValue="+1 (555) 123-4567"
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </CardFooter>
-        </Card>
+        <ProfileSettings />
 
         {/* Notification Preferences */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>
               <div className="flex items-center space-x-2">
@@ -171,10 +98,10 @@ export function LandlordSettings() {
               Save Preferences
             </Button>
           </CardFooter>
-        </Card>
+        </Card> */}
 
         {/* Account Deletion */}
-        <Card className="border-destructive">
+        {/* <Card className="border-destructive">
           <CardHeader>
             <CardTitle>
               <div className="flex items-center space-x-2 text-destructive">
@@ -229,7 +156,7 @@ export function LandlordSettings() {
               Delete Account
             </Button>
           </CardFooter>
-        </Card>
+        </Card>  */}
       </div>
     </main>
   );

@@ -23,4 +23,5 @@ export type UserType = {
   emergencyContact?: string; // tenant only
   moveInDate?: string; // tenant only
   unitId?: string;
+  unitNumber?: string;
 };

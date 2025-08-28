@@ -16,94 +16,71 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  Search,
-  FileText,
-  FileImage,
-  FileArchive,
-  FileSpreadsheet,
-  Download,
-  Trash2,
-  MoreVertical,
-  Folder,
-  FolderOpen,
-  Upload,
-  Cloud,
-} from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { useDocumentUploader } from "@/hooks/useFileUploader";
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "@/store/useUserStore";
+import type { DocumentType } from "@/types/documentTypes";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
+import LandlordDocumentTableRow from "@/components/app/landlord/document/LandlordDocumentTableRow";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
+import { useState } from "react";
+import { LandlordTenantTableRowSkeleton } from "@/components/app/landlord/tenants/LandlordTenantTableRowSkeleton";
+import NoDataFoundTable from "@/components/app/NoDataFoundTable";
+import Pagination from "@/components/app/Pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { folderTypes } from "@/constants/folders";
+
+type DataType = {
+  documents: DocumentType[];
+  total: number;
+  totalPages: number;
+  page: number;
+};
 
 export function LandlordDocuments() {
-  const { documents, handleDocumentsChange, uploadDocuments } =
-    useDocumentUploader();
+  const token = useUserStore((state) => state.userToken);
+  const navigate = useNavigate();
 
-  console.log(documents);
+  const [status, setStatus] = useState("All");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading } = useQuery<DataType>({
+    queryKey: ["landlord-documents", page, limit, debouncedSearch, status],
+    queryFn: fetchData(
+      `http://localhost:8080/api/landlord-documents?page=${page}${
+        status !== "All" ? `&status=${status}` : ""
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
+      token
+    ),
+    enabled: !!token,
+  });
+
+  console.log(data);
 
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Documents</h2>
         <div className="flex space-x-2">
-          <Button variant="outline">
-            <FolderOpen className="h-4 w-4 mr-2" />
-            View Folders
-          </Button>
-          <Button>
+          <Button onClick={() => navigate("/landlord/upload-document")}>
             <Plus className="h-4 w-4 mr-2" />
-            New Folder
+            New Document
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {/* Upload Documents Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Documents</CardTitle>
-            <CardDescription>
-              Store lease agreements, payment receipts, and other important
-              files
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center w-full">
-              <label
-                htmlFor="dropzone-file"
-                className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="mb-2 text-sm text-muted-foreground">
-                    <span className="font-semibold">Click to upload</span> or
-                    drag and drop
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    PDF, DOCX, JPG, or PNG (MAX. 25MB)
-                  </p>
-                </div>
-                <Input
-                  id="dropzone-file"
-                  type="file"
-                  className="hidden"
-                  multiple
-                  onChange={handleDocumentsChange}
-                />
-              </label>
-            </div>
-            <div className="flex items-center justify-center mt-4 text-sm text-muted-foreground">
-              <Cloud className="h-4 w-4 mr-2" />
-              Files are securely stored in the cloud
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline">Cancel</Button>
-            <Button>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Documents
-            </Button>
-          </CardFooter>
-        </Card>
-
         {/* Documents List */}
         <Card>
           <CardHeader>
@@ -112,9 +89,43 @@ export function LandlordDocuments() {
                 <CardTitle>All Documents</CardTitle>
                 <CardDescription>Recently uploaded files</CardDescription>
               </div>
-              <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search documents..." className="pl-9" />
+              <div className="flex space-x-4">
+                <Select
+                  value={status}
+                  onValueChange={(value) => setStatus(value)}>
+                  <SelectTrigger className="w-34">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All</SelectItem>
+                    {folderTypes.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Search requests..."
+                    className="pl-9"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -131,160 +142,32 @@ export function LandlordDocuments() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">Lease_Agreement_3B.pdf</p>
-                        <p className="text-sm text-muted-foreground">
-                          Unit 3B - Sarah Johnson
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">PDF</Badge>
-                  </TableCell>
-                  <TableCell>May 15, 2023</TableCell>
-                  <TableCell>2.4 MB</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Leases
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1">
-                      <Button variant="ghost" size="icon">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileImage className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">Tenant_ID_5A.jpg</p>
-                        <p className="text-sm text-muted-foreground">
-                          Unit 5A - Michael Chen
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">JPG</Badge>
-                  </TableCell>
-                  <TableCell>May 10, 2023</TableCell>
-                  <TableCell>1.1 MB</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Tenant Documents
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1">
-                      <Button variant="ghost" size="icon">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileSpreadsheet className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">May_2023_Rent.xlsx</p>
-                        <p className="text-sm text-muted-foreground">
-                          All units
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">Excel</Badge>
-                  </TableCell>
-                  <TableCell>May 1, 2023</TableCell>
-                  <TableCell>3.7 MB</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Payments
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1">
-                      <Button variant="ghost" size="icon">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileArchive className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">Maintenance_Report_2C.zip</p>
-                        <p className="text-sm text-muted-foreground">
-                          Unit 2C - David Wilson
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">ZIP</Badge>
-                  </TableCell>
-                  <TableCell>Apr 28, 2023</TableCell>
-                  <TableCell>15.2 MB</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Maintenance
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1">
-                      <Button variant="ghost" size="icon">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                {isLoading ? (
+                  <LandlordTenantTableRowSkeleton />
+                ) : data && data?.documents.length > 0 ? (
+                  data?.documents.map((item) => (
+                    <LandlordDocumentTableRow key={item._id} item={item} />
+                  ))
+                ) : (
+                  <NoDataFoundTable
+                    numberOfSpan={6}
+                    label="No documents records found"
+                  />
+                )}
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="text-sm text-muted-foreground">
-              Showing <span className="font-medium">1</span> to{" "}
-              <span className="font-medium">4</span> of{" "}
-              <span className="font-medium">23</span> documents
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
-                Previous
-              </Button>
-              <Button variant="outline" size="sm">
-                Next
-              </Button>
-            </div>
-          </CardFooter>
+          {data && data?.documents.length > 0 && (
+            <CardFooter className="flex justify-between">
+              <Pagination
+                limit={limit}
+                page={page}
+                total={data?.total}
+                totalPages={data?.totalPages}
+                setPage={setPage}
+              />
+            </CardFooter>
+          )}
         </Card>
       </div>
     </main>

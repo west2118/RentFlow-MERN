@@ -40,7 +40,7 @@ export function LandlordUnits() {
   const limit = 6;
 
   const { data, isLoading } = useQuery<DataProps>({
-    queryKey: ["units", page, limit, tab, debouncedSearch],
+    queryKey: ["landlord-units", page, limit, tab, debouncedSearch],
     queryFn: fetchData(
       `http://localhost:8080/api/unit?page=${page}&limit=${limit}${
         tab !== "all" ? `&status=${tab}` : ""

@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,6 +7,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableHeader,
@@ -17,250 +16,159 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Plus, Search, X } from "lucide-react";
+import { useDocumentUploader } from "@/hooks/useFileUploader";
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "@/store/useUserStore";
+import type { DocumentType } from "@/types/documentTypes";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
+import LandlordDocumentTableRow from "@/components/app/landlord/document/LandlordDocumentTableRow";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
+import { useState } from "react";
+import { LandlordTenantTableRowSkeleton } from "@/components/app/landlord/tenants/LandlordTenantTableRowSkeleton";
+import NoDataFoundTable from "@/components/app/NoDataFoundTable";
 import {
-  FileText,
-  FileSpreadsheet,
-  Download,
-  Search,
-  Folder,
-  ChevronDown,
-  FileArchive,
-  FileImage,
-} from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { folderTypes } from "@/constants/folders";
+import Pagination from "@/components/app/Pagination";
+
+type DataType = {
+  documents: DocumentType[];
+  total: number;
+  totalPages: number;
+  page: number;
+};
 
 const TenantDocuments = () => {
+  const token = useUserStore((state) => state.userToken);
+  const navigate = useNavigate();
+
+  const [status, setStatus] = useState("All");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading } = useQuery<DataType>({
+    queryKey: ["tenant-documents", page, limit, debouncedSearch, status],
+    queryFn: fetchData(
+      `http://localhost:8080/api/tenant-documents?page=${page}${
+        status !== "All" ? `&status=${status}` : ""
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
+      token
+    ),
+    enabled: !!token,
+  });
+
+  console.log(data);
+
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">My Documents</h2>
+        <h2 className="text-2xl font-bold">Documents</h2>
         <div className="flex space-x-2">
-          <Button variant="outline">
-            <Folder className="h-4 w-4 mr-2" />
-            View Folders
+          <Button onClick={() => navigate("/landlord/upload-document")}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Document
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {/* Lease Documents Card */}
+        {/* Documents List */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              <div className="flex items-center space-x-2">
-                <FileText className="h-5 w-5" />
-                <span>Lease Documents</span>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>All Documents</CardTitle>
+                <CardDescription>Recently uploaded files</CardDescription>
               </div>
-            </CardTitle>
-            <CardDescription>
-              Your rental agreements and related documents
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Document</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">Lease Agreement 2023-2024</p>
-                        <p className="text-sm text-muted-foreground">
-                          Signed version
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">PDF</Badge>
-                  </TableCell>
-                  <TableCell>Jan 1, 2023</TableCell>
-                  <TableCell>2.4 MB</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">
-                          Lease Addendum - Pet Policy
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Updated March 2023
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">PDF</Badge>
-                  </TableCell>
-                  <TableCell>Mar 15, 2023</TableCell>
-                  <TableCell>1.1 MB</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full">
-              View All Lease Documents
-            </Button>
-          </CardFooter>
-        </Card>
+              <div className="flex space-x-4">
+                <Select
+                  value={status}
+                  onValueChange={(value) => setStatus(value)}>
+                  <SelectTrigger className="w-34">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All</SelectItem>
+                    {folderTypes.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-        {/* Payment Receipts Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <div className="flex items-center space-x-2">
-                <FileSpreadsheet className="h-5 w-5" />
-                <span>Payment Receipts</span>
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Search requests..."
+                    className="pl-9"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </CardTitle>
-            <CardDescription>Your rent payment confirmations</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Receipt</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileSpreadsheet className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">May 2023 Rent Receipt</p>
-                        <p className="text-sm text-muted-foreground">
-                          Paid May 1, 2023
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">PDF</Badge>
-                  </TableCell>
-                  <TableCell>May 1, 2023</TableCell>
-                  <TableCell>$1,200.00</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileSpreadsheet className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">April 2023 Rent Receipt</p>
-                        <p className="text-sm text-muted-foreground">
-                          Paid Apr 1, 2023
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">PDF</Badge>
-                  </TableCell>
-                  <TableCell>Apr 1, 2023</TableCell>
-                  <TableCell>$1,200.00</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full">
-              View All Payment Receipts
-            </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Other Documents Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <div className="flex items-center space-x-2">
-                <FileArchive className="h-5 w-5" />
-                <span>Other Documents</span>
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Additional files related to your tenancy
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Document</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Uploaded</TableHead>
                   <TableHead>Size</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <FileImage className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">Move-In Inspection Report</p>
-                        <p className="text-sm text-muted-foreground">
-                          January 2023
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">JPG</Badge>
-                  </TableCell>
-                  <TableCell>Jan 1, 2023</TableCell>
-                  <TableCell>5.2 MB</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                {isLoading ? (
+                  <LandlordTenantTableRowSkeleton />
+                ) : data && data?.documents.length > 0 ? (
+                  data?.documents.map((item) => (
+                    <LandlordDocumentTableRow key={item._id} item={item} />
+                  ))
+                ) : (
+                  <NoDataFoundTable
+                    numberOfSpan={6}
+                    label="No documents records found"
+                  />
+                )}
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full">
-              View All Documents
-            </Button>
-          </CardFooter>
+
+          {data && data?.documents.length > 0 && (
+            <CardFooter className="flex justify-between">
+              <Pagination
+                limit={limit}
+                page={page}
+                total={data?.total}
+                totalPages={data?.totalPages}
+                setPage={setPage}
+              />
+            </CardFooter>
+          )}
         </Card>
       </div>
     </main>

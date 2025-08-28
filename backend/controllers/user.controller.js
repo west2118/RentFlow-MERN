@@ -130,6 +130,27 @@ const getSpecificUser = async (req, res) => {
   }
 };
 
+const editUser = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const updatedUserInfo = await User.findOneAndUpdate({ uid }, req.body, {
+      new: true,
+    });
+
+    res
+      .status(200)
+      .json({ message: "User info updated successfully!", updatedUserInfo });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const getLandlordTenants = async (req, res) => {
   try {
     const { uid } = req.user;
@@ -144,13 +165,13 @@ const getLandlordTenants = async (req, res) => {
     const skip = (page - 1) * limit;
     const search = req.query.search;
 
-    const total = await Unit.countDocuments({
+    const query = {
       landlordUid: uid,
       status: "Occupied",
-    });
-    const units = await Unit.find({ landlordUid: uid, status: "Occupied" })
-      .skip(skip)
-      .limit(limit);
+    };
+
+    const total = await Unit.countDocuments(query);
+    const units = await Unit.find(query).skip(skip).limit(limit);
 
     let getTenants = [];
 
@@ -163,12 +184,14 @@ const getLandlordTenants = async (req, res) => {
         User.findOne({ uid: unit.tenantUid }),
       ]);
 
-      getTenants.push({
-        ...unit.toObject(),
-        tenantName: `${tenant.firstName} ${tenant.lastName}` || null,
-        tenantGmail: tenant.email || null,
-        lease: activeLease || null,
-      });
+      if (activeLease && activeLease.leaseEnd >= new Date()) {
+        getTenants.push({
+          ...unit.toObject(),
+          tenantName: `${tenant.firstName} ${tenant.lastName}` || null,
+          tenantGmail: tenant.email || null,
+          lease: activeLease || null,
+        });
+      }
     }
 
     if (search) {
@@ -193,4 +216,46 @@ const getLandlordTenants = async (req, res) => {
   }
 };
 
-export { putUser, getSpecificUser, getUser, getLandlordTenants };
+const getLandlordAllTenants = async (req, res) => {
+  try {
+    const { uid } = req.user;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const units = await Unit.find({
+      landlordUid: uid,
+    });
+
+    const tenantUids = units.map((unit) => unit.tenantUid);
+
+    const tenants = await User.find({ uid: { $in: tenantUids } });
+
+    let tenantAndUnit = [];
+
+    for (const tenant of tenants) {
+      const unit = await Unit.findOne({ tenantUid: tenant.uid });
+
+      tenantAndUnit.push({
+        ...tenant.toObject(),
+        unitNumber: unit.unitNumber,
+      });
+    }
+
+    res.status(200).json(tenantAndUnit);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export {
+  putUser,
+  getSpecificUser,
+  getUser,
+  getLandlordTenants,
+  getLandlordAllTenants,
+  editUser,
+};

@@ -39,6 +39,14 @@ const getUnitWithLeaseStatus = async (req, res) => {
         tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : null;
       }
 
+      if (activeLease && activeLease.leaseEnd <= new Date()) {
+        if (unit.status !== "available") {
+          unit.status = "Available";
+          unit.tenantUid = "";
+          await unit.save(); // update in DB
+        }
+      }
+
       getUnitWithLeaseStatus.push({
         ...unit.toObject(),
         hasLease: !!activeLease,

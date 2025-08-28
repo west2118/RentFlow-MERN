@@ -32,12 +32,12 @@ export function LandlordCreateLease() {
     paymentSchedule: "",
     notes: "",
   });
-  const { documents, handleDocumentsChange, uploadDocuments, setDocumuents } =
-    useDocumentUploader();
+  // const { documents, handleDocumentsChange, uploadDocuments, setDocumuents } =
+  //   useDocumentUploader();
 
-  const handleRemoveDocument = (i: number) => {
-    setDocumuents((prev) => prev.filter((_, index) => index !== i));
-  };
+  // const handleRemoveDocument = (i: number) => {
+  //   setDocumuents((prev) => prev.filter((_, index) => index !== i));
+  // };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -48,17 +48,14 @@ export function LandlordCreateLease() {
       formData.rentAmount === 0 ||
       formData.securityDeposit === 0 ||
       formData.paymentSchedule === "" ||
-      formData.notes === "" ||
-      documents.length === 0
+      formData.notes === ""
     ) {
       return toast.error("Missing Required Field");
     }
 
     setIsLoading(true);
 
-    const docs = await uploadDocuments();
-
-    const addedData = { ...formData, documents: docs };
+    const addedData = { ...formData };
 
     try {
       const response = await axios.post(
@@ -95,7 +92,7 @@ export function LandlordCreateLease() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Lease Information Form */}
         <LandlordLeaseFormCard
           formData={formData}
@@ -105,11 +102,11 @@ export function LandlordCreateLease() {
         />
 
         {/* Document Upload Section */}
-        <LandlordDocumentUploadCard
+        {/* <LandlordDocumentUploadCard
           handleDocumentsChange={handleDocumentsChange}
           documents={documents}
           handleRemoveDocument={handleRemoveDocument}
-        />
+        /> */}
       </div>
     </form>
   );
