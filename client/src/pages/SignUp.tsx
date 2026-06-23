@@ -35,8 +35,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useForm } from "@/hooks/useForm";
 import { toast } from "react-toastify";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/firebase";
+import { useUserStore } from "@/store/useUserStore";
 import axios from "axios";
 
 type FormData = {
@@ -61,6 +60,8 @@ export default function SignUp() {
   });
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
+  const setUserToken = useUserStore((state) => state.setUserToken);
+  const setUser = useUserStore((state) => state.setUser);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -87,25 +88,20 @@ export default function SignUp() {
     };
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-
-      const token = await userCredential.user.getIdToken();
-
-      await axios.put(
-        "http://localhost:8080/api/user",
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/register",
         {
           ...fullData,
+          password: formData.password,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         }
       );
+
+      const { accessToken, user } = response.data;
+      setUserToken(accessToken);
+      setUser(user);
 
       toast.success("Account created successfully!");
       navigate("/onboarding");

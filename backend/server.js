@@ -2,15 +2,19 @@ import http from "http";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import admin from "firebase-admin";
-import { createRequire } from "module";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 dotenv.config({ path: [".env.local", ".env"] });
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
+import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import unitRoutes from "./routes/unitRoutes.js";
 import leaseRoutes from "./routes/leaseRoutes.js";
@@ -21,13 +25,7 @@ import receiptRoutes from "./routes/receiptRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 
-const require = createRequire(import.meta.url);
-const serviceAccount = require("./serviceAccountKey.json");
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://newtasks-196cb-default-rtdb.firebaseio.com",
-});
 
 mongoose.connect(process.env.MONGO_URI).then(() => {
   console.log("Connected to MongoDB successfully!");
@@ -36,6 +34,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
   });
 });
 
+app.use("/api/auth", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", unitRoutes);
 app.use("/api", unitRoutes);

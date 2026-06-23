@@ -25,8 +25,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "@/hooks/useForm";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/firebase";
+import { useUserStore } from "@/store/useUserStore";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -43,6 +42,8 @@ export default function SignIn() {
     email: "",
     password: "",
   });
+  const setUserToken = useUserStore((state) => state.setUserToken);
+  const setUser = useUserStore((state) => state.setUser);
 
   const handleSignIn = async (e: any) => {
     e.preventDefault();
@@ -56,23 +57,20 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-
-      const token = await userCredential.user.getIdToken();
-
-      const response = await axios.put(
-        "http://localhost:8080/api/user",
-        {},
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/login",
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          email: formData.email,
+          password: formData.password,
+        },
+        {
+          withCredentials: true,
         }
       );
+
+      const { accessToken, user } = response.data;
+      setUserToken(accessToken);
+      setUser(user);
 
       if (response?.data.role === "landlord") {
         navigate("/landlord");

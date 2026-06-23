@@ -25,7 +25,7 @@ import { Image, Loader, Upload, UploadCloud, X } from "lucide-react";
 import ImageUpload from "./shared/ImageUpload";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { auth } from "@/firebase";
+import { useUserStore } from "@/store/useUserStore";
 import { useNavigate } from "react-router-dom";
 import { useImageUploader } from "@/hooks/useImageUploader";
 
@@ -39,6 +39,7 @@ type ImageType = "idFront" | "idBack" | "proofOfAddres";
 
 const LandlordSetup = () => {
   const navigate = useNavigate();
+  const token = useUserStore((state) => state.userToken);
   const [isAgree, setIsAgree] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { formData, handleChange, setField } = useForm<FormData>({
@@ -75,7 +76,7 @@ const LandlordSetup = () => {
 
     imageUrls = (await handleUploadImages()) ?? [];
 
-    const token = await auth.currentUser?.getIdToken();
+
 
     const formattedUrls = Object.fromEntries(
       imageUrls.map((i) => [i.type, i.url])

@@ -19,7 +19,7 @@ import ImageUpload from "./shared/ImageUpload";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Loader } from "lucide-react";
-import { auth } from "@/firebase";
+import { useUserStore } from "@/store/useUserStore";
 import { useImageUploader } from "@/hooks/useImageUploader";
 
 type FormData = {
@@ -32,6 +32,7 @@ type ImageType = "idFront" | "idBack";
 
 const TenantSetup = () => {
   const navigate = useNavigate();
+  const token = useUserStore((state) => state.userToken);
   const [isAgree, setIsAgree] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { formData, handleChange, setField } = useForm<FormData>({
@@ -65,7 +66,7 @@ const TenantSetup = () => {
 
     imageUrls = (await handleUploadImages()) ?? [];
 
-    const token = await auth.currentUser?.getIdToken();
+
 
     const formattedUrls = Object.fromEntries(
       imageUrls.map((i) => [i.type, i.url])

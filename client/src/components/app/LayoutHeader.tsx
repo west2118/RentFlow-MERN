@@ -8,8 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { signOut } from "firebase/auth";
-import { auth } from "@/firebase";
+
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useEffect, useRef, useState } from "react";
@@ -79,7 +78,8 @@ const LayoutHeader = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await axios.post("http://localhost:8080/api/auth/logout", {}, { withCredentials: true });
+      useUserStore.getState().clearUser();
       navigate("/signin");
 
       toast.success("Logged out successfully!");
@@ -99,7 +99,7 @@ const LayoutHeader = () => {
   if (isLoading || !data) return <Loading />;
 
   return (
-    <header className="bg-white border-b p-4">
+    <header className="bg-white border-b py-4 px-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" className="md:hidden">
@@ -137,9 +137,8 @@ const LayoutHeader = () => {
                     {data?.notifications.map((n) => (
                       <li
                         key={n._id}
-                        className={`p-3 border-b text-sm ${
-                          !n.read ? "bg-gray-100 font-medium" : "bg-white"
-                        }`}>
+                        className={`p-3 border-b text-sm ${!n.read ? "bg-gray-100 font-medium" : "bg-white"
+                          }`}>
                         <div>{`${n.title}: ${n.message}`}</div>
                         <div className="text-xs text-gray-400">
                           {new Date(n.createdAt).toLocaleDateString()}
