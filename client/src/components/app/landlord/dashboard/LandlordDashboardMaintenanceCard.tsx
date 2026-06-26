@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { fetchData } from "@/constants/fetchData";
 import { useUserStore } from "@/store/useUserStore";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Wrench,
   AlertCircle,
@@ -27,18 +27,12 @@ import NoDataFoundCard from "../NoDataFoundCard";
 
 const LandlordDashboardMaintenanceCard = () => {
   const navigate = useNavigate();
-  const token = useUserStore((state) => state.userToken);
 
-  const { data, isLoading } = useQuery<MaintenanceType[]>({
+  const { data } = useSuspenseQuery<MaintenanceType[]>({
     queryKey: ["latest-maintenance"],
     queryFn: fetchData(
-      "http://localhost:8080/api/landlord-latest-maintenance",
-      token
-    ),
-    enabled: !!token,
+      "http://localhost:8080/api/landlord-latest-maintenance"),
   });
-
-  console.log(data);
 
   return (
     <Card className="lg:col-span-2">
@@ -49,13 +43,7 @@ const LandlordDashboardMaintenanceCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, index) => (
-              <LandlordDashboardMaintenanceLoading key={index} />
-            ))}
-          </div>
-        ) : data && data.length > 0 ? (
+        {data.length > 0 ? (
           <div className="space-y-4">
             {data.map((maintenance) => (
               <LandlordMaintenanceLatestCard
@@ -68,7 +56,7 @@ const LandlordDashboardMaintenanceCard = () => {
           <NoDataFoundCard label="No maintenance records found" />
         )}
       </CardContent>
-      {Array.isArray(data) && data.length > 0 && (
+      {data.length > 0 && (
         <CardFooter className="mt-auto flex justify-end">
           <Button
             onClick={() => navigate("/landlord/maintenance")}

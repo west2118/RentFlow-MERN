@@ -2,11 +2,11 @@ export type PaymentType = {
   _id: string;
   leaseId: string;
   unitId: string;
-  landlordUid: string;
+  landlordId: string;
   amount: number;
   dueDate: Date;
   status: string;
-  tenantUid?: string;
+  tenantId?: string;
   datePaid?: string;
   method?: string;
   unitNumber?: string;

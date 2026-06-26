@@ -2,11 +2,12 @@ import Lease from "../models/lease.model.js";
 import Payment from "../models/payment.model.js";
 import Receipt from "../models/receipt.model.js";
 import User from "../models/user.model.js";
+import { getSimulatedPayments } from "../utils/paymentGenerator.js";
 
 const postReceipt = async (req, res) => {
   try {
-    const { uid } = req.user;
-    const {
+    const { _id } = req.user;
+    let {
       paymentId,
       fileUrl,
       transactionDate,
@@ -19,43 +20,79 @@ const postReceipt = async (req, res) => {
 
     console.log(req.body);
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const payment = await Payment.findById(paymentId);
+    let payment;
+
+    // Handle simulated payment IDs by inserting them into the database first
+    if (paymentId && paymentId.startsWith("simulated-")) {
+      const parts = paymentId.split("-");
+      if (parts.length === 4) {
+        const leaseId = parts[1];
+        const year = parseInt(parts[2]);
+        const month = parseInt(parts[3]);
+
+        const lease = await Lease.findById(leaseId);
+        if (lease) {
+          const simulated = getSimulatedPayments(lease, new Date(year, month, 1));
+          const simPayment = simulated.find(p => {
+            const d = new Date(p.dueDate);
+            return d.getFullYear() === year && d.getMonth() === month;
+          });
+
+          if (simPayment) {
+            payment = new Payment({
+              leaseId: simPayment.leaseId,
+              unitId: simPayment.unitId,
+              landlordId: simPayment.landlordId,
+              tenantId: simPayment.tenantId,
+              dueDate: simPayment.dueDate,
+              amount: simPayment.amount,
+              status: "In Process"
+            });
+            await payment.save();
+            // Update paymentId so the receipt links to the real DB ID
+            paymentId = payment._id.toString();
+          }
+        }
+      }
+    } else {
+      payment = await Payment.findById(paymentId);
+      if (payment) {
+        payment.status = "In Process";
+        await payment.save();
+      }
+    }
+
     if (!payment) {
       return res.status(400).json({ message: "Payment didn't exist" });
     }
 
-    if (uid.toString() !== payment.tenantUid.toString()) {
+    if (_id.toString() !== payment.tenantId.toString()) {
       return res.status(400).json({ message: "Don't have authorized in this" });
     }
 
     const lease = await Lease.findById(payment.leaseId);
 
     let appliedLateFee = 0;
-
     const now = new Date();
 
-    const dueDate = new Date(payment.dueDate);
-    const gracePeriod = new Date(dueDate);
-    gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+    if (lease?.lateFee && lease.lateFee.afterDays !== undefined) {
+      const dueDate = new Date(payment.dueDate);
+      const gracePeriod = new Date(dueDate);
+      gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
 
-    if (now > gracePeriod) {
-      appliedLateFee = lease.lateFee.amount;
+      if (now > gracePeriod) {
+        appliedLateFee = lease.lateFee.amount;
+      }
     }
 
-    const updatedPayment = await Payment.findByIdAndUpdate(
-      paymentId,
-      { status: "In Process" },
-      { new: true }
-    );
-
     const newReceipt = await Receipt.create({
-      tenantUid: payment.tenantUid,
-      landlordUid: payment.landlordUid,
+      tenantId: payment.tenantId,
+      landlordId: payment.landlordId,
       leaseId: payment.leaseId,
       paymentId,
       fileUrl,
@@ -70,7 +107,7 @@ const postReceipt = async (req, res) => {
     res.status(200).json({
       message: "Payment receipt sent successfully!",
       newReceipt,
-      updatedPayment,
+      updatedPayment: payment,
     });
   } catch (error) {
     console.log(error);
@@ -80,12 +117,17 @@ const postReceipt = async (req, res) => {
 
 const getReceipt = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { id } = req.params;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    // A simulated payment doesn't have a receipt yet
+    if (id.startsWith("simulated-")) {
+      return res.status(200).json(null);
     }
 
     const payment = await Payment.findById(id);
@@ -107,11 +149,11 @@ const getReceipt = async (req, res) => {
 
 const acceptReceipt = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { id } = req.params;
     const { lateFee } = req.body;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -121,7 +163,7 @@ const acceptReceipt = async (req, res) => {
       return res.status(400).json({ message: "Receipt didn't exist" });
     }
 
-    if (receipt.landlordUid.toString() !== uid.toString()) {
+    if (receipt.landlordId.toString() !== _id.toString()) {
       return res.status(400).json({ message: "Don't have authorized in this" });
     }
 
@@ -149,10 +191,10 @@ const acceptReceipt = async (req, res) => {
 
 const rejectReceipt = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { id } = req.params;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -162,7 +204,7 @@ const rejectReceipt = async (req, res) => {
       return res.status(400).json({ message: "Receipt didn't exist" });
     }
 
-    if (receipt.landlordUid.toString() !== uid.toString()) {
+    if (receipt.landlordId.toString() !== _id.toString()) {
       return res.status(400).json({ message: "Don't have authorized in this" });
     }
 

@@ -37,20 +37,14 @@ export function UnitDetailsModal({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token || !unit?.tenantUid) return;
+    if (!token || !unit?.tenantId) return;
 
     const fetchData = async () => {
       setLoading(true);
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/specific-user/${unit.tenantUid}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          `http://localhost:8080/api/specific-user/${unit.tenantId}`);
 
         setData(response.data);
       } catch (error: any) {
@@ -61,13 +55,13 @@ export function UnitDetailsModal({
     };
 
     fetchData();
-  }, [unit?.tenantUid, token]);
+  }, [unit?.tenantId, token]);
 
   useEffect(() => {
-    if (!unit.tenantUid) {
+    if (!unit.tenantId) {
       setLoading(false);
     }
-  }, [unit?.tenantUid]);
+  }, [unit?.tenantId]);
 
   useEffect(() => {
     if (isModalOpen) {

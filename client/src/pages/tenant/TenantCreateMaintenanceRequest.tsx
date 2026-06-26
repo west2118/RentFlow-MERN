@@ -59,13 +59,7 @@ const TenantCreateMaintenanceRequest = ({ isEdit }: { isEdit: boolean }) => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/maintenance/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          `http://localhost:8080/api/maintenance/${id}`);
 
         const data = response?.data;
 
@@ -125,23 +119,11 @@ const TenantCreateMaintenanceRequest = ({ isEdit }: { isEdit: boolean }) => {
       if (isEdit && id) {
         response = await axios.put(
           `http://localhost:8080/api/maintenance/${id}`,
-          { ...addedData },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          { ...addedData });
       } else {
         response = await axios.post(
           "http://localhost:8080/api/maintenance",
-          { ...addedData },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          { ...addedData });
       }
 
       navigate("/tenant/maintenance");

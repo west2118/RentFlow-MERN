@@ -4,9 +4,9 @@ import User from "../models/user.model.js";
 
 const getTenantDocuments = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -18,12 +18,12 @@ const getTenantDocuments = async (req, res) => {
     const status = req.query.status;
 
     const query = {
-      tenantUid: uid,
+      tenantId: _id,
     };
     if (search) {
       query.$or = [
         { tenantFullName: { $regex: search, $options: "i" } },
-        { tenantUid: { $regex: search, $options: "i" } },
+        { tenantId: { $regex: search, $options: "i" } },
         { unitNumber: { $regex: search, $options: "i" } },
         { "documents.name": { $regex: search, $options: "i" } },
       ];
@@ -49,9 +49,9 @@ const getTenantDocuments = async (req, res) => {
 
 const getLandlordDocuments = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -63,12 +63,12 @@ const getLandlordDocuments = async (req, res) => {
     const status = req.query.status;
 
     const query = {
-      landlordUid: uid,
+      landlordId: _id,
     };
     if (search) {
       query.$or = [
         { tenantFullName: { $regex: search, $options: "i" } },
-        { tenantUid: { $regex: search, $options: "i" } },
+        { tenantId: { $regex: search, $options: "i" } },
         { unitNumber: { $regex: search, $options: "i" } },
         { "documents.name": { $regex: search, $options: "i" } },
       ];
@@ -94,20 +94,20 @@ const getLandlordDocuments = async (req, res) => {
 
 const postDocument = async (req, res) => {
   try {
-    const { uid } = req.user;
-    const { tenantUid, category, documents } = req.body;
+    const { _id } = req.user;
+    const { tenantId, category, documents } = req.body;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const unit = await Unit.findOne({ tenantUid });
+    const unit = await Unit.findOne({ tenantId });
     if (!unit) {
       return res.status(400).json({ message: "Unit didn't exist" });
     }
 
-    const tenant = await User.findOne({ uid: tenantUid });
+    const tenant = await User.findById(tenantId);
     if (!tenant) {
       return res.status(400).json({ message: "Tenant didn't exist" });
     }
@@ -117,8 +117,8 @@ const postDocument = async (req, res) => {
     const createDocs = await Promise.all(
       documents.map((doc) =>
         Document.create({
-          landlordUid: uid,
-          tenantUid,
+          landlordId: _id,
+          tenantId,
           tenantFullName,
           category,
           documents: [doc], // wrap single file inside array

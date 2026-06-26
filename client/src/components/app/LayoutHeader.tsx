@@ -26,7 +26,6 @@ type DataType = {
 };
 
 const LayoutHeader = () => {
-  const token = useUserStore((state) => state.userToken);
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,21 +55,13 @@ const LayoutHeader = () => {
 
   const { data, isLoading } = useQuery<DataType>({
     queryKey: ["user-info-notification"],
-    queryFn: fetchData("http://localhost:8080/api/user", token),
-    enabled: !!token,
+    queryFn: fetchData("http://localhost:8080/api/user"),
   });
 
   const readNotificationsMutation = useMutation({
     mutationFn: async () =>
       axios.put(
-        `http://localhost:8080/api/read-notification`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      ),
+        `http://localhost:8080/api/read-notification`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-info-notification"] });
     },
@@ -78,7 +69,7 @@ const LayoutHeader = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:8080/api/auth/logout", {}, { withCredentials: true });
+      await axios.post("http://localhost:8080/api/auth/logout", { withCredentials: true });
       useUserStore.getState().clearUser();
       navigate("/signin");
 
@@ -95,8 +86,6 @@ const LayoutHeader = () => {
       readNotificationsMutation.mutate();
     }
   };
-
-  if (isLoading || !data) return <Loading />;
 
   return (
     <header className="bg-white border-b py-4 px-6">

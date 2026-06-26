@@ -7,7 +7,7 @@ import User from "../models/user.model.js";
 
 const putUser = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const {
       firstName,
       lastName,
@@ -23,6 +23,7 @@ const putUser = async (req, res) => {
     } = req.body;
 
     let unitId = null;
+    let inviteObj = null;
 
     if (inviteToken) {
       const invite = await Invite.findOne({
@@ -39,35 +40,10 @@ const putUser = async (req, res) => {
       }
 
       unitId = invite.unitId;
-
-      const updatedLease = await Lease.findOneAndUpdate(
-        { unitId: invite.unitId, isActive: true },
-        {
-          tenantUid: uid,
-        },
-        { new: true }
-      );
-
-      await Unit.findByIdAndUpdate(
-        invite.unitId,
-        {
-          tenantUid: uid,
-          status: "Occupied",
-        },
-        { new: true }
-      );
-
-      await Payment.updateMany(
-        { unitId: invite.unitId, leaseId: updatedLease._id },
-        { tenantUid: uid }
-      );
-
-      invite.used = true;
-      await invite.save();
+      inviteObj = invite;
     }
 
     let updatedUserData = {
-      uid,
       firstName,
       lastName,
       email,
@@ -84,10 +60,41 @@ const putUser = async (req, res) => {
       updatedUserData.unitId = unitId;
     }
 
-    const user = await User.findOneAndUpdate({ uid }, updatedUserData, {
+    const user = await User.findByIdAndUpdate(_id, updatedUserData, {
       upsert: true,
       new: true,
     });
+
+    if (inviteObj) {
+      const updatedLease = await Lease.findOneAndUpdate(
+        { unitId: inviteObj.unitId, isActive: true },
+        {
+          tenantId: _id,
+        },
+        { new: true }
+      );
+
+      await Unit.findByIdAndUpdate(
+        inviteObj.unitId,
+        {
+          tenantId: _id,
+          status: "Occupied",
+        },
+        { new: true }
+      );
+
+      if (updatedLease) {
+        await Payment.updateMany(
+          { unitId: inviteObj.unitId, leaseId: updatedLease._id },
+          { tenantId: _id }
+        );
+      }
+
+      inviteObj.used = true;
+      await inviteObj.save();
+    }
+
+
 
     res.status(200).json(user);
   } catch (error) {
@@ -98,15 +105,15 @@ const putUser = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
     const notifications = await Notification.find({
-      userId: uid,
+      userId: _id,
     });
 
     res.status(200).json({ user, notifications });
@@ -119,7 +126,7 @@ const getSpecificUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const user = await User.findOne({ uid: id });
+    const user = await User.findById(id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -132,14 +139,14 @@ const getSpecificUser = async (req, res) => {
 
 const editUser = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const updatedUserInfo = await User.findOneAndUpdate({ uid }, req.body, {
+    const updatedUserInfo = await User.findByIdAndUpdate(_id, req.body, {
       new: true,
     });
 
@@ -153,9 +160,9 @@ const editUser = async (req, res) => {
 
 const getLandlordTenants = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -166,7 +173,7 @@ const getLandlordTenants = async (req, res) => {
     const search = req.query.search;
 
     const query = {
-      landlordUid: uid,
+      landlordId: _id,
       status: "Occupied",
     };
 
@@ -181,14 +188,14 @@ const getLandlordTenants = async (req, res) => {
           unitId: unit._id,
           isActive: true,
         }),
-        User.findOne({ uid: unit.tenantUid }),
+        User.findById(unit.tenantId),
       ]);
 
-      if (activeLease && activeLease.leaseEnd >= new Date()) {
+      if (activeLease) {
         getTenants.push({
           ...unit.toObject(),
-          tenantName: `${tenant.firstName} ${tenant.lastName}` || null,
-          tenantGmail: tenant.email || null,
+          tenantName: tenant ? `${tenant.firstName} ${tenant.lastName}` : "Unknown Tenant",
+          tenantGmail: tenant ? tenant.email : "No Email",
           lease: activeLease || null,
         });
       }
@@ -197,10 +204,9 @@ const getLandlordTenants = async (req, res) => {
     if (search) {
       getTenants = getTenants.filter(
         (u) =>
-          u.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-          u.lastName?.toLowerCase().includes(search.toLowerCase()) ||
-          u.unitNumber?.toLowerCase().includes(search.toLowerCase()) ||
-          u.tenantName?.toLowerCase().includes(search.toLowerCase())
+          u.tenantName?.toLowerCase().includes(search.toLowerCase()) ||
+          u.tenantGmail?.toLowerCase().includes(search.toLowerCase()) ||
+          u.unitNumber?.toLowerCase().includes(search.toLowerCase())
       );
     }
 
@@ -218,29 +224,29 @@ const getLandlordTenants = async (req, res) => {
 
 const getLandlordAllTenants = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
     const units = await Unit.find({
-      landlordUid: uid,
+      landlordId: _id,
     });
 
-    const tenantUids = units.map((unit) => unit.tenantUid);
+    const tenantIds = units.map((unit) => unit.tenantId);
 
-    const tenants = await User.find({ uid: { $in: tenantUids } });
+    const tenants = await User.find({ _id: { $in: tenantIds } });
 
     let tenantAndUnit = [];
 
     for (const tenant of tenants) {
-      const unit = await Unit.findOne({ tenantUid: tenant.uid });
+      const unit = await Unit.findOne({ tenantId: tenant._id });
 
       tenantAndUnit.push({
         ...tenant.toObject(),
-        unitNumber: unit.unitNumber,
+        unitNumber: unit ? unit.unitNumber : "No Unit",
       });
     }
 

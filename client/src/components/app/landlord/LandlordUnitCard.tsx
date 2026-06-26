@@ -57,9 +57,8 @@ const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
             </CardDescription>
           </div>
           <Badge
-            variant={`${
-              item.status === "Available" ? "secondary" : "default"
-            }`}>
+            variant={`${item.status === "Available" ? "secondary" : "default"
+              }`}>
             {item?.status}
           </Badge>
         </div>
@@ -85,7 +84,7 @@ const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
           <>
             <div className="flex items-start text-sm gap-2">
               <User className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-              <span className="flex-1 break-words">{item.tenantName}</span>
+              <span className="flex-1 break-words">{item.tenantName ? item.tenantName : "No assigned tenant"}</span>
             </div>
             <div className="flex items-start text-sm gap-2">
               <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -100,7 +99,7 @@ const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
         )}
       </CardContent>
       <CardFooter className="mt-auto flex justify-between">
-        {item?.status === "Occupied" ? (
+        {item?.status === "Occupied" && item?.tenantId ? (
           <Button
             onClick={() => handleOpenModal(item, "lease")}
             variant="outline"
@@ -108,19 +107,30 @@ const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
             <FileText className="h-4 w-4 mr-2" />
             View Lease
           </Button>
-        ) : item?.hasLease ? (
-          <Button onClick={() => handleOpenModal(item, "invite")} size="sm">
-            <User className="h-4 w-4 mr-2" />
-            Assign Tenant
-          </Button>
+        ) : item?.hasLease && !item?.tenantId ? (
+          <div className="flex gap-4">
+            <Button
+              onClick={() => handleOpenModal(item, "lease")}
+              variant="outline"
+              size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              View Lease
+            </Button>
+            <Button onClick={() => handleOpenModal(item, "invite")} size="sm">
+              <User className="h-4 w-4 mr-2" />
+              Assign Tenant
+            </Button>
+          </div>
         ) : (
-          <Button
-            onClick={() => navigate(`/landlord/lease/create/${item._id}`)}
-            variant="default"
-            size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Add Lease
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate(`/landlord/lease/create/${item._id}`)}
+              variant="default"
+              size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              Add Lease
+            </Button>
+          </div>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

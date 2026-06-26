@@ -18,7 +18,7 @@ import {
   SelectItem,
 } from "../ui/select";
 import { Checkbox } from "../ui/checkbox";
-import { TabsContent } from "../ui/tabs";
+
 import { useForm } from "@/hooks/useForm";
 import { useState } from "react";
 import { Image, Loader, Upload, UploadCloud, X } from "lucide-react";
@@ -39,7 +39,6 @@ type ImageType = "idFront" | "idBack" | "proofOfAddres";
 
 const LandlordSetup = () => {
   const navigate = useNavigate();
-  const token = useUserStore((state) => state.userToken);
   const [isAgree, setIsAgree] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { formData, handleChange, setField } = useForm<FormData>({
@@ -95,13 +94,7 @@ const LandlordSetup = () => {
         "http://localhost:8080/api/user",
         {
           ...addedData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        });
 
       toast.success("Profile updated successfully!");
       navigate("/landlord/");
@@ -113,7 +106,7 @@ const LandlordSetup = () => {
   };
 
   return (
-    <TabsContent value="landlord">
+    <div className="w-full">
       <Card>
         <CardHeader>
           <CardTitle>Landlord Setup</CardTitle>
@@ -217,7 +210,7 @@ const LandlordSetup = () => {
           </Button>
         </CardFooter>
       </Card>
-    </TabsContent>
+    </div>
   );
 };
 

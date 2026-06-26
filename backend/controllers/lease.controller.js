@@ -5,7 +5,7 @@ import User from "../models/user.model.js";
 
 const postLease = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { id } = req.params;
     const {
       leaseStart,
@@ -19,7 +19,7 @@ const postLease = async (req, res) => {
 
     console.log(req.body);
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -29,7 +29,7 @@ const postLease = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    if (unit.landlordUid.toString() !== uid.toString()) {
+    if (unit.landlordId.toString() !== _id.toString()) {
       return res
         .status(400)
         .json({ message: "You don't have authorized in this unit" });
@@ -45,7 +45,7 @@ const postLease = async (req, res) => {
 
     const newLease = new Lease({
       unitId: id,
-      landlordUid: uid,
+      landlordId: _id,
       leaseStart,
       leaseEnd,
       rentAmount: Number(rentAmount),
@@ -57,46 +57,6 @@ const postLease = async (req, res) => {
     });
     await newLease.save();
 
-    const payments = [];
-    let current = new Date(leaseStart);
-    const leaseEndDate = new Date(leaseEnd);
-
-    while (current < leaseEndDate) {
-      const dueDate = new Date(current);
-
-      let amount = rentAmount;
-
-      const isFirstMonth =
-        current.getMonth() === new Date(leaseStart).getMonth() &&
-        current.getFullYear() === new Date(leaseStart).getFullYear();
-
-      if (isFirstMonth) {
-        const daysInMonth = new Date(
-          current.getFullYear(),
-          current.getMonth() + 1,
-          0
-        ).getDate();
-
-        const leaseStartDay = new Date(leaseStart).getDate();
-        const proratedDays = daysInMonth - leaseStartDay + 1;
-        amount = (rentAmount / daysInMonth) * proratedDays;
-      }
-
-      payments.push({
-        leaseId: newLease._id,
-        unitId: id,
-        landlordUid: uid,
-        dueDate: new Date(dueDate),
-        amount: Math.round(amount),
-        status: "Pending",
-      });
-
-      current = new Date(current.getFullYear(), current.getMonth() + 1, 1);
-    }
-
-    console.log(payments);
-
-    await Payment.insertMany(payments);
 
     res.status(200).json({ message: "Lease created successfully!", newLease });
   } catch (error) {
@@ -106,23 +66,23 @@ const postLease = async (req, res) => {
 
 const getLease = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { id } = req.params;
 
     console.log(id);
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const tenant = await User.findOne({ uid: id });
+    const tenant = await User.findById(id);
     if (!tenant) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
     const lease = await Lease.findOne({
-      tenantUid: id,
+      tenantId: id,
       isActive: true,
     });
 

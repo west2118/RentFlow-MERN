@@ -1,8 +1,8 @@
 export interface ReceiptType {
   _id?: string;
   paymentId: string;
-  tenantUid: string;
-  landlordUid: string;
+  tenantId: string;
+  landlordId: string;
   leaseId: string;
   amountPaid: number;
   accountNumber: string;

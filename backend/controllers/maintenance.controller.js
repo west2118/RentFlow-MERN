@@ -8,7 +8,7 @@ dotenv.config({ path: [".env.local", ".env"] });
 
 const postMaintenanceRequest = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const {
       issueType,
       requestName,
@@ -18,7 +18,7 @@ const postMaintenanceRequest = async (req, res) => {
       tenantName,
     } = req.body;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -28,7 +28,7 @@ const postMaintenanceRequest = async (req, res) => {
       return res.status(400).json({ message: "Unit didn't exist" });
     }
 
-    if (user.uid.toString() !== unit.tenantUid.toString()) {
+    if (_id.toString() !== unit.tenantId.toString()) {
       return res
         .status(400)
         .json({ message: "You don't have authorized in this unit" });
@@ -41,8 +41,8 @@ const postMaintenanceRequest = async (req, res) => {
       description,
       photo,
       unitId: user.unitId,
-      tenantUid: user.uid,
-      landlordUid: unit.landlordUid,
+      tenantId: _id,
+      landlordId: unit.landlordId,
       tenantName,
       unitNumber: unit.unitNumber,
     });
@@ -57,16 +57,16 @@ const postMaintenanceRequest = async (req, res) => {
 
 const getTenantMaintenance = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
     const lease = await Lease.findOne({
       isActive: true,
-      tenantUid: user.uid,
+      tenantId: _id,
     });
 
     const page = parseInt(req.query.page) || 1;
@@ -75,7 +75,7 @@ const getTenantMaintenance = async (req, res) => {
     const search = req.query.search;
     const status = req.query.status;
 
-    const query = { tenantUid: uid };
+    const query = { tenantId: _id };
     if (search) {
       query.$or = [
         { issueType: { $regex: search, $options: "i" } },
@@ -117,9 +117,9 @@ const getTenantMaintenance = async (req, res) => {
 
 const getLandlordMaintenance = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -130,7 +130,7 @@ const getLandlordMaintenance = async (req, res) => {
     const search = req.query.search;
     const status = req.query.status;
 
-    const query = { landlordUid: uid };
+    const query = { landlordId: _id };
     if (search) {
       query.$or = [
         { issueType: { $regex: search, $options: "i" } },
@@ -164,16 +164,16 @@ const getLandlordMaintenance = async (req, res) => {
 
 const markAsInProgress = async (req, res) => {
   try {
-    const { uid } = req.user;
-    const { techNotes, tenantName, maintenanceId, tenantUid, status, message } =
+    const { _id } = req.user;
+    const { techNotes, tenantName, maintenanceId, tenantId, status, message } =
       req.body;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const tenant = await User.findOne({ uid: tenantUid });
+    const tenant = await User.findById(tenantId);
     if (!tenant) {
       return res.status(400).json({ message: "Tenant didn't exist" });
     }
@@ -183,7 +183,7 @@ const markAsInProgress = async (req, res) => {
       return res.status(400).json({ message: "Maintenance didn't exist" });
     }
 
-    if (maintenance.landlordUid.toString() !== uid.toString()) {
+    if (maintenance.landlordId.toString() !== _id.toString()) {
       return res
         .status(400)
         .json({ message: "You don't have authorized in this " });
@@ -240,14 +240,14 @@ const markAsInProgress = async (req, res) => {
 
 const getLandlordMaintenanceDashboard = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const maintenances = await Maintenance.find({ landlordUid: uid })
+    const maintenances = await Maintenance.find({ landlordId: _id })
       .sort({ createdAt: -1 })
       .limit(3);
 
@@ -259,10 +259,10 @@ const getLandlordMaintenanceDashboard = async (req, res) => {
 
 const getMaintenance = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { id } = req.params;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -277,10 +277,10 @@ const getMaintenance = async (req, res) => {
 
 const putMaintenance = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { id } = req.params;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -290,7 +290,7 @@ const putMaintenance = async (req, res) => {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    if (uid.toString() !== maintenance.tenantUid.toString()) {
+    if (_id.toString() !== maintenance.tenantId.toString()) {
       return res
         .status(400)
         .json({ message: "You don't have authorized in this" });
@@ -311,6 +311,22 @@ const putMaintenance = async (req, res) => {
   }
 };
 
+const getUserRecentMaintenance = async (req, res) => {
+  try {
+    const { _id } = req.user;
+
+    const maintenance = await Maintenance.find({
+      tenantId: _id,
+    })
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    res.status(200).json(maintenance);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 export {
   postMaintenanceRequest,
   getTenantMaintenance,
@@ -319,4 +335,5 @@ export {
   markAsInProgress,
   getMaintenance,
   putMaintenance,
+  getUserRecentMaintenance,
 };

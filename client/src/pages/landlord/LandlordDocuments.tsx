@@ -60,10 +60,8 @@ export function LandlordDocuments() {
     queryFn: fetchData(
       `http://localhost:8080/api/landlord-documents?page=${page}${
         status !== "All" ? `&status=${status}` : ""
-      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
-      token
-    ),
-    enabled: !!token,
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`),
+    
   });
 
   console.log(data);

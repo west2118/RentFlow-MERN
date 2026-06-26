@@ -13,7 +13,7 @@ export const verifyToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Contains { uid }
+    req.user = decoded; // Contains { _id }
     next();
   } catch (error) {
     return res.status(401).json({ message: "Token is not valid" });

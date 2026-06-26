@@ -69,10 +69,8 @@ const TenantMaintenanceHistoryCard = () => {
     queryFn: fetchData(
       `http://localhost:8080/api/tenant-maintenance?page=${page}${
         status !== "All" ? `&status=${status}` : ""
-      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`,
-      token
-    ),
-    enabled: !!token,
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`),
+    
   });
 
   const handleOpenDetailsModal = (item: MaintenanceType) => {

@@ -41,7 +41,7 @@ import ImageUpload from "@/components/app/shared/ImageUpload";
 import { useNavigate, useParams } from "react-router-dom";
 import type { UnitType } from "@/types/unitTypes";
 import { fetchData } from "@/constants/fetchData";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DataLoading from "@/components/app/DataLoading";
 
 type FormData = {
@@ -68,6 +68,7 @@ type FormFields = {
 export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const token = useUserStore((state) => state.userToken);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false);
@@ -98,13 +99,7 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/unit/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          `http://localhost:8080/api/unit/${id}`);
 
         const data = response.data;
 
@@ -151,6 +146,32 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
     }));
   };
 
+  const mutation = useMutation({
+    mutationFn: async (fullData: any) => {
+      if (isEdit && id) {
+        const response = await axios.put(
+          `http://localhost:8080/api/unit/${id}`,
+          fullData
+        );
+        return response.data;
+      } else {
+        const response = await axios.post(
+          "http://localhost:8080/api/unit",
+          fullData
+        );
+        return response.data;
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["landlord-units"] });
+      navigate("/landlord/units");
+      toast.success(data.message);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || error.message);
+    },
+  });
+
   const handleSubmit = async () => {
     let imageUrls = [];
 
@@ -164,52 +185,24 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
 
     setIsSubmitLoading(true);
 
-    imageUrls = (await handleUploadImages()) ?? [];
-
-    const fullData = {
-      ...formData,
-      ...formFields,
-      photos: imageUrls[0].url,
-      amenities: availableAmenities,
-    };
-
     try {
-      let response;
+      imageUrls = (await handleUploadImages()) ?? [];
 
-      if (isEdit && id) {
-        response = await axios.put(
-          `http://localhost:8080/api/unit/${id}`,
-          {
-            ...fullData,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      } else {
-        response = await axios.post(
-          "http://localhost:8080/api/unit",
-          {
-            ...fullData,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      }
+      const fullData = {
+        ...formData,
+        ...formFields,
+        photos: imageUrls[0]?.url,
+        amenities: availableAmenities,
+      };
 
-      console.log(response?.data);
-
-      navigate("/landlord/units");
-      toast.success(response.data.message);
+      mutation.mutate(fullData, {
+        onSettled: () => {
+          setIsSubmitLoading(false);
+        }
+      });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message);
-    } finally {
       setIsSubmitLoading(false);
+      toast.error("Failed to upload images");
     }
   };
 
@@ -471,8 +464,8 @@ export function LandlordCreateUnit({ isEdit }: { isEdit: boolean }) {
           variant="outline">
           Cancel
         </Button>
-        <Button type="submit" onClick={handleSubmit}>
-          {isSubmitLoading ? <Loader className="animate-spin h-5 w-5" /> : ""}
+        <Button type="submit" onClick={handleSubmit} disabled={isSubmitLoading || mutation.isPending}>
+          {isSubmitLoading || mutation.isPending ? <Loader className="animate-spin h-5 w-5" /> : ""}
           {isEdit ? "Update" : "Create"} Unit
         </Button>
       </CardFooter>

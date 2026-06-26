@@ -5,32 +5,7 @@ import Unit from "../models/unit.model.js";
 import Payment from "../models/payment.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { v4 as uuidv4 } from "uuid";
-
-const generateTokens = (uid) => {
-  const accessToken = jwt.sign({ uid }, process.env.JWT_SECRET, {
-    expiresIn: "15m",
-  });
-  const refreshToken = jwt.sign({ uid }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "7d",
-  });
-  return { accessToken, refreshToken };
-};
-
-const setCookies = (res, accessToken, refreshToken) => {
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes
-  });
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
-};
+import { generateTokens, setCookies } from "../utils/generateToken.js";
 
 export const register = async (req, res) => {
   try {
@@ -44,9 +19,15 @@ export const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const uid = uuidv4();
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+    });
 
-    let unitId = null;
+    const _id = newUser._id;
+    let inviteObj = null;
 
     if (inviteToken) {
       const invite = await Invite.findOne({
@@ -58,61 +39,58 @@ export const register = async (req, res) => {
         return res.status(400).json({ message: "Invalid or expired invite." });
       }
 
-      unitId = invite.unitId;
+      newUser.unitId = invite.unitId;
+      newUser.role = "tenant";
+      inviteObj = invite;
+    } else {
+      newUser.role = "landlord";
+    }
 
+    const { accessToken, refreshToken } = generateTokens(_id);
+    newUser.refreshToken = refreshToken;
+
+    await newUser.save();
+
+    if (inviteObj) {
       const updatedLease = await Lease.findOneAndUpdate(
-        { unitId: invite.unitId, isActive: true },
-        { tenantUid: uid },
+        { unitId: inviteObj.unitId, isActive: true },
+        { tenantId: _id },
         { new: true }
       );
 
       await Unit.findByIdAndUpdate(
-        invite.unitId,
+        inviteObj.unitId,
         {
-          tenantUid: uid,
+          tenantId: _id,
           status: "Occupied",
         },
         { new: true }
       );
 
-      await Payment.updateMany(
-        { unitId: invite.unitId, leaseId: updatedLease?._id },
-        { tenantUid: uid }
-      );
+      if (updatedLease) {
+        await Payment.updateMany(
+          { unitId: inviteObj.unitId, leaseId: updatedLease._id },
+          { tenantId: _id }
+        );
+      }
 
-      invite.used = true;
-      await invite.save();
+      inviteObj.used = true;
+      await inviteObj.save();
     }
 
-    const { accessToken, refreshToken } = generateTokens(uid);
-
-    const newUser = new User({
-      uid,
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      refreshToken,
-      unitId,
-    });
-
-    await newUser.save();
-
     setCookies(res, accessToken, refreshToken);
+
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
+    delete userResponse.refreshToken;
 
     res.status(201).json({
       message: "User registered successfully",
       accessToken,
-      user: {
-        uid,
-        firstName,
-        lastName,
-        email,
-        role: newUser.role,
-      },
+      user: userResponse,
     });
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -127,7 +105,7 @@ export const login = async (req, res) => {
     }
 
     if (!user.password) {
-        return res.status(400).json({ message: "Password not set for this user (Migrated from Firebase)." });
+      return res.status(400).json({ message: "Password not set for this user (Migrated from Firebase)." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -135,23 +113,21 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    const { accessToken, refreshToken } = generateTokens(user.uid);
+    const { accessToken, refreshToken } = generateTokens(user._id);
 
     user.refreshToken = refreshToken;
     await user.save();
 
     setCookies(res, accessToken, refreshToken);
 
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.refreshToken;
+
     res.status(200).json({
       message: "Logged in successfully",
       accessToken,
-      user: {
-        uid: user.uid,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-      },
+      user: userResponse,
     });
   } catch (error) {
     console.error(error);
@@ -201,22 +177,19 @@ export const refresh = async (req, res) => {
         return res.status(403).json({ message: "Invalid or expired refresh token." });
       }
 
-      const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.uid);
+      const accessToken = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "15m",
+      });
 
-      user.refreshToken = newRefreshToken;
-      await user.save();
+      setCookies(res, accessToken, refreshToken);
 
-      setCookies(res, accessToken, newRefreshToken);
+      const userResponse = user.toObject();
+      delete userResponse.password;
+      delete userResponse.refreshToken;
 
       res.status(200).json({
         accessToken,
-        user: {
-          uid: user.uid,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-        },
+        user: userResponse,
       });
     });
   } catch (error) {

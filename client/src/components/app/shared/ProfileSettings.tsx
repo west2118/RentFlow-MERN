@@ -45,8 +45,8 @@ const ProfileSettings = () => {
 
   const { data, isLoading } = useQuery<DataType>({
     queryKey: ["user-info-notification"],
-    queryFn: fetchData("http://localhost:8080/api/user", token),
-    enabled: !!token,
+    queryFn: fetchData("http://localhost:8080/api/user"),
+    
   });
 
   useEffect(() => {
@@ -72,13 +72,7 @@ const ProfileSettings = () => {
         `http://localhost:8080/api/update-user`,
         {
           ...formData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        });
 
       setIsEdit(false);
       toast.success(response.data.message);

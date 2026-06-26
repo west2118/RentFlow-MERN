@@ -25,7 +25,8 @@ import TenantDocuments from "./pages/tenant/TenantDocuments";
 import TenantSettings from "./pages/tenant/TenantSettings";
 import HomeLayout from "./components/app/HomeLayout";
 import SignUp from "./pages/SignUp";
-import OnboardingPage from "./pages/Onboarding";
+import LandlordOnboardingPage from "./pages/LandlordOnboardingPage";
+import TenantOnboardingPage from "./pages/TenantOnboardingPage";
 import { useSyncInfo } from "./hooks/useSyncInfo";
 import { LandlordCreateUnit } from "./pages/landlord/LandlordCreateUnit";
 import { LandlordCreateLease } from "./pages/landlord/LandlordCreateLease";
@@ -43,7 +44,8 @@ const router = createBrowserRouter(
         <Route path="/signup" element={<SignUp />} />
       </Route>
 
-      <Route path="onboarding" element={<OnboardingPage />} />
+      <Route path="onboarding/landlord" element={<LandlordOnboardingPage />} />
+      <Route path="onboarding/tenant" element={<TenantOnboardingPage />} />
 
       <Route path="/landlord" element={<LandlordLayout />}>
         <Route index element={<LandlordDashboardContent />} />
@@ -91,7 +93,9 @@ const router = createBrowserRouter(
 );
 
 function App() {
-  useSyncInfo();
+  const { isInitializing } = useSyncInfo();
+
+  if (isInitializing) return null;
 
   return (
     <>

@@ -52,8 +52,6 @@ export default function SignIn() {
       return toast.error("Missing Required Field");
     }
 
-    console.log(formData);
-
     setIsLoading(true);
 
     try {
@@ -77,7 +75,7 @@ export default function SignIn() {
       } else if (response?.data.role === "tenant") {
         navigate("/tenant");
       } else {
-        navigate("/onboarding");
+        navigate("/onboarding/landlord");
       }
       toast.success("Logged In Successfully");
     } catch (error: any) {

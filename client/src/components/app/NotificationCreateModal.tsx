@@ -15,7 +15,7 @@ type NotificationCreateModalProps = {
   isModalOpen: boolean;
   onCloseModal: () => void;
   fullName: string;
-  tenantUid: string;
+  tenantId: string;
 };
 
 type FormData = {
@@ -28,7 +28,7 @@ export const NotificationCreateModal = ({
   isModalOpen,
   onCloseModal,
   fullName,
-  tenantUid,
+  tenantId,
 }: NotificationCreateModalProps) => {
   const token = useUserStore((state) => state.userToken);
   const { formData, handleChange, setField } = useForm<FormData>({
@@ -62,31 +62,19 @@ export const NotificationCreateModal = ({
     try {
       let response;
 
-      if (tenantUid === "all") {
+      if (tenantId === "all") {
         response = await axios.post(
           `http://localhost:8080/api/notification-all`,
           {
             ...formData,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          });
       } else {
         response = await axios.post(
           `http://localhost:8080/api/notification`,
           {
             ...formData,
-            userId: tenantUid,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+            userId: tenantId,
+          });
       }
 
       onCloseModal();
@@ -135,7 +123,7 @@ export const NotificationCreateModal = ({
           <p className="text-sm font-medium text-gray-700">
             Send To:{" "}
             <span className="font-semibold text-gray-900">
-              {tenantUid === "all" ? "All Tenants" : fullName}
+              {tenantId === "all" ? "All Tenants" : fullName}
             </span>
           </p>
         </div>

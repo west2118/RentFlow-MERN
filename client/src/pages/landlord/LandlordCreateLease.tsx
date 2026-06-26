@@ -5,6 +5,7 @@ import { useForm } from "@/hooks/useForm";
 import axios from "axios";
 import { useUserStore } from "@/store/useUserStore";
 import { toast } from "react-toastify";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import LandlordDocumentUploadCard from "@/components/app/landlord/LandlordDocumentUploadCard";
 import { useDocumentUploader } from "@/hooks/useFileUploader";
 import LandlordLeaseFormCard from "@/components/app/landlord/lease/LandlordLeaseFormCard";
@@ -22,6 +23,7 @@ type FormData = {
 export function LandlordCreateLease() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const token = useUserStore((state) => state.userToken);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { formData, handleChange, setField } = useForm<FormData>({
@@ -38,6 +40,24 @@ export function LandlordCreateLease() {
   // const handleRemoveDocument = (i: number) => {
   //   setDocumuents((prev) => prev.filter((_, index) => index !== i));
   // };
+
+  const mutation = useMutation({
+    mutationFn: async (addedData: any) => {
+      const response = await axios.post(
+        `http://localhost:8080/api/lease/${id}`,
+        addedData
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["landlord-units"] });
+      navigate("/landlord/units");
+      toast.success(data.message);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || error.message);
+    },
+  });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -57,26 +77,11 @@ export function LandlordCreateLease() {
 
     const addedData = { ...formData };
 
-    try {
-      const response = await axios.post(
-        `http://localhost:8080/api/lease/${id}`,
-        {
-          ...addedData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      navigate("/landlord/units");
-      toast.success(response.data.message);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    mutation.mutate(addedData, {
+      onSettled: () => {
+        setIsLoading(false);
+      }
+    });
   };
 
   return (
@@ -98,7 +103,7 @@ export function LandlordCreateLease() {
           formData={formData}
           setField={setField}
           handleChange={handleChange}
-          isLoading={isLoading}
+          isLoading={isLoading || mutation.isPending}
         />
 
         {/* Document Upload Section */}

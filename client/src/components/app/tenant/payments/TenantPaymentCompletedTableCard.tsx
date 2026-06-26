@@ -5,7 +5,6 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import {
   Table,
@@ -13,6 +12,8 @@ import {
   TableRow,
   TableHead,
   TableBody,
+  TableFooter,
+  TableCell,
 } from "@/components/ui/table";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -30,44 +31,45 @@ import {
 } from "@/components/ui/select";
 import { paymentStatusArray } from "@/constants/paymentStatusArray";
 import Pagination from "../../Pagination";
-import { LandlordTenantTableRowSkeleton } from "../../landlord/tenants/LandlordTenantTableRowSkeleton";
-import TenantMaintenanceSkeletonLoading from "../maintenance/TenantMaintenanceSkeletonLoading";
 import TenantPaymentCompletedTableRowSkeleton from "./TenantPaymentCompletedTableRowSkeleton";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
 
-type TenantPaymentCompletedTableCardProps = {
-  item: PaymentType[];
+type HistoryDataType = {
+  completedPayment: PaymentType[];
   total: number;
   page: number;
   totalPages: number;
-  setSearch: React.Dispatch<React.SetStateAction<string>>;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
-  limit: number;
-  setStatus: React.Dispatch<React.SetStateAction<string>>;
-  status: string;
-  search: string;
-  isLoading: boolean;
 };
 
-const TenantPaymentCompletedTableCard = ({
-  item,
-  total,
-  page,
-  totalPages,
-  setSearch,
-  setPage,
-  limit,
-  setStatus,
-  status,
-  search,
-  isLoading,
-}: TenantPaymentCompletedTableCardProps) => {
+const TenantPaymentCompletedTableCard = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<PaymentType | null>(null);
+
+  const [status, setStatus] = useState("All");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading } = useQuery<HistoryDataType>({
+    queryKey: ["tenant-payment-history", page, limit, debouncedSearch, status],
+    queryFn: fetchData(
+      `http://localhost:8080/api/tenant-payment/history?page=${page}${status !== "All" ? `&status=${status}` : ""
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`
+    ),
+    placeholderData: keepPreviousData,
+  });
 
   const handleOpenModal = (payment: PaymentType) => {
     setIsModalOpen(true);
     setSelectedItem(payment);
   };
+
+  const item = data?.completedPayment;
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 0;
 
   return (
     <Card>
@@ -144,20 +146,24 @@ const TenantPaymentCompletedTableCard = ({
               />
             )}
           </TableBody>
+
+          {item && item?.length > 0 && (
+            <TableFooter className="bg-white">
+              <TableRow>
+                <TableCell colSpan={7}>
+                  <Pagination
+                    limit={limit}
+                    page={page}
+                    total={total}
+                    totalPages={totalPages}
+                    setPage={setPage}
+                  />
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </CardContent>
-
-      {item && item?.length > 0 && (
-        <CardFooter className="flex justify-between">
-          <Pagination
-            limit={limit}
-            page={page}
-            total={total}
-            totalPages={totalPages}
-            setPage={setPage}
-          />
-        </CardFooter>
-      )}
 
       {isModalOpen && (
         <ReceiptModal

@@ -19,7 +19,7 @@ const LandlordPaymentDueTableRow = ({
   handleOpenModal,
 }: {
   item: PaymentType;
-  handleOpenModal: (tenantUid: string, fullName: string) => void;
+  handleOpenModal: (tenantId: string, fullName: string) => void;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -53,7 +53,7 @@ const LandlordPaymentDueTableRow = ({
         <div className="flex justify-end space-x-1">
           <Button
             onClick={() =>
-              handleOpenModal(item?.tenantUid ?? "", item?.tenantName ?? "")
+              handleOpenModal(item?.tenantId ?? "", item?.tenantName ?? "")
             }
             variant="ghost"
             size="icon">

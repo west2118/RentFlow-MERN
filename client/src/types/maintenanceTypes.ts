@@ -6,8 +6,8 @@ export type MaintenanceType = {
   description: string;
   photo: string;
   unitId: string;
-  tenantUid: string;
-  landlordUid: string;
+  tenantId: string;
+  landlordId: string;
   status?: string;
   techNotes?: string;
   tenantName: string;

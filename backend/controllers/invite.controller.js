@@ -6,12 +6,12 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config({ path: [".env.local", ".env"] });
 
-const getUserInvite = async (req, res) => {
+export const getUserInvite = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { unitId } = req.params;
 
     const invite = await Invite.findOne({
-      unitId: id,
+      unitId,
       expiresAt: { $gt: new Date() },
     });
 
@@ -19,9 +19,8 @@ const getUserInvite = async (req, res) => {
       return res.status(200).json("");
     }
 
-    const inviteLink = `${req.protocol}://${req.get("host")}/signup?invite=${
-      invite.token
-    }`;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const inviteLink = `${frontendUrl}/signup?invite=${invite.token}`;
 
     res.status(200).json(inviteLink);
   } catch (error) {
@@ -30,18 +29,18 @@ const getUserInvite = async (req, res) => {
   }
 };
 
-const sendInvite = async (req, res) => {
+export const sendInvite = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { gmail, unitId, tenantName } = req.body;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
     const unit = await Unit.findById(unitId);
-    if (unit.landlordUid.toString() !== uid.toString()) {
+    if (unit.landlordId.toString() !== _id.toString()) {
       return res
         .status(400)
         .json({ message: "You don't have authorized in this post" });
@@ -59,7 +58,7 @@ const sendInvite = async (req, res) => {
 
     const token = uuidv4();
     await Invite.create({
-      landlordUid: uid,
+      landlordId: _id,
       tenantName,
       gmail,
       unitId,
@@ -67,9 +66,8 @@ const sendInvite = async (req, res) => {
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
 
-    const inviteLink = `${req.protocol}://${req.get(
-      "host"
-    )}/signup?invite=${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const inviteLink = `${frontendUrl}/signup?invite=${token}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -101,4 +99,3 @@ const sendInvite = async (req, res) => {
   }
 };
 
-export { sendInvite, getUserInvite };

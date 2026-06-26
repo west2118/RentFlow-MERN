@@ -20,8 +20,8 @@ const TenantMakePaymentSummaryCard = ({ token }: { token: string | null }) => {
 
   const { data, isLoading } = useQuery<PaymentType>({
     queryKey: ["tenant-paymentMonth", id],
-    queryFn: fetchData("http://localhost:8080/api/payment", token, true),
-    enabled: !!token && !!id,
+    queryFn: fetchData("http://localhost:8080/api/payment", true),
+    enabled: !!id,
   });
 
   if (isLoading) return <Loading />;

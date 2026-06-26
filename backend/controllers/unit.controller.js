@@ -3,12 +3,13 @@ import Payment from "../models/payment.model.js";
 import Unit from "../models/unit.model.js";
 import User from "../models/user.model.js";
 import Maintenance from "../models/maintenance.model.js";
+import { getSimulatedPayments } from "../utils/paymentGenerator.js";
 
 const getUnitWithLeaseStatus = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -19,10 +20,9 @@ const getUnitWithLeaseStatus = async (req, res) => {
     const status = req.query.status;
     const search = req.query.search;
 
-    const query = { landlordUid: uid };
+    const query = { landlordId: _id };
 
-    const total = await Unit.countDocuments(query);
-    const units = await Unit.find(query).skip(skip).limit(limit);
+    const units = await Unit.find(query);
 
     const getUnitWithLeaseStatus = [];
 
@@ -34,29 +34,40 @@ const getUnitWithLeaseStatus = async (req, res) => {
 
       let tenantName = null;
 
-      if (activeLease?.tenantUid) {
-        const tenant = await User.findOne({ uid: activeLease.tenantUid });
+      if (activeLease?.tenantId) {
+        const tenant = await User.findById(activeLease.tenantId);
         tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : null;
       }
 
-      if (activeLease && activeLease.leaseEnd <= new Date()) {
-        if (unit.status !== "available") {
+      let derivedStatus = unit.status;
+      const now = new Date();
+
+      if (activeLease && activeLease.leaseEnd > now) {
+        derivedStatus = "Occupied";
+        if (unit.status !== "Occupied") {
+          unit.status = "Occupied";
+          await unit.save();
+        }
+      } else if (activeLease && activeLease.leaseEnd <= now) {
+        derivedStatus = "Available";
+        if (unit.status !== "Available" && unit.status !== "available") {
           unit.status = "Available";
-          unit.tenantUid = "";
-          await unit.save(); // update in DB
+          unit.tenantId = null;
+          await unit.save();
         }
       }
 
       getUnitWithLeaseStatus.push({
         ...unit.toObject(),
-        hasLease: !!activeLease,
+        hasLease: !!activeLease && activeLease.leaseEnd > now,
+        status: derivedStatus,
         tenantName,
         lease: activeLease || null,
       });
     }
 
     let filteredUnits = status
-      ? getUnitWithLeaseStatus.filter((u) => u.status === status)
+      ? getUnitWithLeaseStatus.filter((u) => u.status?.toLowerCase() === status.toLowerCase())
       : getUnitWithLeaseStatus;
 
     if (search) {
@@ -69,22 +80,25 @@ const getUnitWithLeaseStatus = async (req, res) => {
       );
     }
 
+    const totalFiltered = filteredUnits.length;
+    const paginatedUnits = filteredUnits.slice(skip, skip + limit);
+
     res.status(200).json({
-      units: filteredUnits,
-      total: filteredUnits.length,
+      units: paginatedUnits,
+      total: totalFiltered,
       page,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(totalFiltered / limit),
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-const getUserUnitLeasePaymentAndMaintenance = async (req, res) => {
+const getUserUnitLeasePayment = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -103,55 +117,75 @@ const getUserUnitLeasePaymentAndMaintenance = async (req, res) => {
 
     const lease = await Lease.findOne({
       isActive: true,
-      tenantUid: user.uid,
+      tenantId: user._id,
     });
-
-    const maintenance = await Maintenance.find({
-      tenantUid: uid,
-    })
-      .sort({ createdAt: -1 })
-      .limit(3);
 
     if (lease.leaseEnd && lease.leaseEnd < now) {
       return res.status(200).json({
         message: "Lease expired",
         lease: { ...lease.toObject(), status: "expired" },
-        maintenance,
       });
     }
 
-    const paymentMonth = await Payment.findOne({
-      tenantUid: uid,
-      dueDate: {
-        $gte: startOfMonth,
-        $lte: endOfMonth,
-      },
+    let simulatedPayments = [];
+    if (lease && lease.isActive) {
+      simulatedPayments = getSimulatedPayments(lease, new Date(now.getFullYear(), now.getMonth() + 1, 1));
+    }
+
+    let paymentMonthDb = await Payment.findOne({
+      tenantId: _id,
+      dueDate: { $gte: startOfMonth, $lte: endOfMonth },
     });
 
-    const unit = await Unit.findById(user.unitId);
-
-    let totalAmount = paymentMonth.amount;
+    let paymentMonth = null;
     let appliedLateFee = 0;
 
-    if (paymentMonth.status === "Pending" && paymentMonth.dueDate) {
-      const dueDate = new Date(paymentMonth.dueDate);
-      const gracePeriod = new Date(dueDate);
-      gracePeriod.setDate(gracePeriod.getDate() + lease.lateFee.afterDays);
+    if (paymentMonthDb) {
+      paymentMonth = paymentMonthDb.toObject();
+      appliedLateFee = paymentMonth.lateFee || 0;
+      
+      // If it's in DB but not paid, check if it's overdue
+      if (paymentMonth.status !== "Paid" && paymentMonth.dueDate && lease?.lateFee) {
+        const dueDate = new Date(paymentMonth.dueDate);
+        const gracePeriod = new Date(dueDate);
+        gracePeriod.setDate(gracePeriod.getDate() + (lease.lateFee.afterDays || 0));
 
-      if (now > gracePeriod) {
-        appliedLateFee = lease.lateFee.amount;
-        totalAmount += appliedLateFee;
-        paymentMonth.status = "Overdue";
+        if (now > gracePeriod) {
+          appliedLateFee = lease.lateFee.amount;
+          if (paymentMonth.status === "Pending") {
+            paymentMonth.status = "Overdue";
+          }
+        }
+      }
+    } else {
+      paymentMonth = simulatedPayments.find(p => {
+        const d = new Date(p.dueDate);
+        return d >= startOfMonth && d <= endOfMonth;
+      });
+
+      if (paymentMonth && paymentMonth.dueDate && lease?.lateFee) {
+        const dueDate = new Date(paymentMonth.dueDate);
+        const gracePeriod = new Date(dueDate);
+        gracePeriod.setDate(gracePeriod.getDate() + (lease.lateFee.afterDays || 0));
+
+        if (now > gracePeriod) {
+          appliedLateFee = lease.lateFee.amount;
+          paymentMonth.status = "Overdue";
+        }
       }
     }
 
-    const payment = {
-      ...paymentMonth.toObject(),
+    const unit = await Unit.findById(user.unitId);
+
+    let totalAmount = paymentMonth ? paymentMonth.amount + appliedLateFee : 0;
+
+    const payment = paymentMonth ? {
+      ...paymentMonth,
       lateFee: appliedLateFee,
       totalAmount,
-    };
+    } : null;
 
-    res.status(200).json({ unit, lease, payment, maintenance });
+    res.status(200).json({ unit, lease, payment });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -159,9 +193,9 @@ const getUserUnitLeasePaymentAndMaintenance = async (req, res) => {
 
 const getUserUnitAndLease = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -169,7 +203,7 @@ const getUserUnitAndLease = async (req, res) => {
     const now = new Date();
     const lease = await Lease.findOne({
       isActive: true,
-      tenantUid: user.uid,
+      tenantId: user._id,
       unitId: user.unitId,
     });
 
@@ -193,17 +227,17 @@ const getUserUnitAndUserInfo = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const user = await User.findOne({ uid: id });
+    const user = await User.findById(id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const unit = await Unit.findOne({ tenantUid: id });
+    const unit = await Unit.findOne({ tenantId: id });
     if (!unit) {
       return res.status(400).json({ message: "Unit didn't exist" });
     }
 
-    const landlord = await User.findOne({ uid: unit.landlordUid });
+    const landlord = await User.findById(unit.landlordId);
     if (!landlord) {
       return res.status(404).json({ message: "Landlord not found" });
     }
@@ -222,14 +256,14 @@ const getUserUnitAndUserInfo = async (req, res) => {
 
 const getLandlordUnits = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const units = await Unit.find({ landlordUid: uid });
+    const units = await Unit.find({ landlordId: _id });
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -243,13 +277,28 @@ const getLandlordUnits = async (req, res) => {
       999
     );
 
-    const paymentMonth = await Payment.find({
-      landlordUid: uid,
-      dueDate: {
-        $gte: startOfMonth,
-        $lte: endOfMonth,
-      },
-    });
+    const activeLeases = await Lease.find({ landlordId: _id, isActive: true });
+
+    let paymentMonth = [];
+    for (const lease of activeLeases) {
+      let paymentMonthDb = await Payment.findOne({
+        leaseId: lease._id,
+        dueDate: { $gte: startOfMonth, $lte: endOfMonth },
+      });
+
+      if (paymentMonthDb) {
+        paymentMonth.push(paymentMonthDb.toObject());
+      } else {
+        const simulatedPayments = getSimulatedPayments(lease, new Date(now.getFullYear(), now.getMonth() + 1, 1));
+        const currentMonthPayment = simulatedPayments.find(p => {
+          const d = new Date(p.dueDate);
+          return d >= startOfMonth && d <= endOfMonth;
+        });
+        if (currentMonthPayment) {
+          paymentMonth.push(currentMonthPayment);
+        }
+      }
+    }
 
     res.status(200).json({ units, paymentMonth });
   } catch (error) {
@@ -257,11 +306,81 @@ const getLandlordUnits = async (req, res) => {
   }
 };
 
+const getLandlordDashboardSummary = async (req, res) => {
+  try {
+    const { _id } = req.user;
+
+    const user = await User.findById(_id);
+    if (!user) {
+      return res.status(400).json({ message: "User didn't exist" });
+    }
+
+    const units = await Unit.find({ landlordId: _id });
+    const totalUnits = units.length;
+    const totalOccupiedUnits = units.filter(u => u.status === "Occupied").length;
+    const totalAvailableUnits = units.filter(u => u.status === "Available").length;
+
+    const percentageTotalOccupied = totalUnits > 0 ? (totalOccupiedUnits / totalUnits) * 100 : 0;
+    const percentageTotalAvailable = totalUnits > 0 ? (totalAvailableUnits / totalUnits) * 100 : 0;
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    const activeLeases = await Lease.find({ landlordId: _id, isActive: true });
+
+    let totalMonthRent = 0;
+    let totalUnitsInPayment = 0;
+
+    for (const lease of activeLeases) {
+      let paymentMonthDb = await Payment.findOne({
+        leaseId: lease._id,
+        dueDate: { $gte: startOfMonth, $lte: endOfMonth },
+      });
+
+      if (paymentMonthDb) {
+        totalMonthRent += paymentMonthDb.amount;
+        totalUnitsInPayment += 1;
+      } else {
+        const simulatedPayments = getSimulatedPayments(lease, new Date(now.getFullYear(), now.getMonth() + 1, 1));
+        const currentMonthPayment = simulatedPayments.find(p => {
+          const d = new Date(p.dueDate);
+          return d >= startOfMonth && d <= endOfMonth;
+        });
+        if (currentMonthPayment) {
+          totalMonthRent += currentMonthPayment.amount;
+          totalUnitsInPayment += 1;
+        }
+      }
+    }
+
+    res.status(200).json({
+      totalUnits,
+      totalOccupiedUnits,
+      totalAvailableUnits,
+      percentageTotalOccupied,
+      percentageTotalAvailable,
+      totalMonthRent,
+      totalUnitsInPayment,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const getTotalLastMonthUnits = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -280,7 +399,7 @@ const getTotalLastMonthUnits = async (req, res) => {
     );
 
     const lastMonthUnits = await Unit.countDocuments({
-      landlordUid: uid,
+      landlordId: _id,
       createdAt: {
         $gte: startOfLastMonth,
         $lte: endOfLastMonth,
@@ -295,7 +414,7 @@ const getTotalLastMonthUnits = async (req, res) => {
 
 const postUnit = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const {
       name,
       unitNumber,
@@ -312,9 +431,7 @@ const postUnit = async (req, res) => {
       amenities,
     } = req.body;
 
-    console.log(req.body);
-
-    const user = await User.findOne({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
@@ -326,7 +443,7 @@ const postUnit = async (req, res) => {
     }
 
     const newUnit = new Unit({
-      landlordUid: uid,
+      landlordId: _id,
       name,
       unitNumber,
       floor,
@@ -351,13 +468,7 @@ const postUnit = async (req, res) => {
 
 const getUnit = async (req, res) => {
   try {
-    const { uid } = req.user;
     const { id } = req.params;
-
-    const user = await User.findOne({ uid });
-    if (!user) {
-      return res.status(400).json({ message: "User didn't exist" });
-    }
 
     const unit = await Unit.findById(id);
 
@@ -391,10 +502,11 @@ const putUnit = async (req, res) => {
 
 export {
   postUnit,
-  getUserUnitLeasePaymentAndMaintenance,
+  getUserUnitLeasePayment,
   getUserUnitAndLease,
   getUserUnitAndUserInfo,
   getLandlordUnits,
+  getLandlordDashboardSummary,
   getTotalLastMonthUnits,
   getUnitWithLeaseStatus,
   getUnit,

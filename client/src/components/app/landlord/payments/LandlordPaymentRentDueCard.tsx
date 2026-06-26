@@ -16,15 +16,9 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  CalendarDays,
   Bell,
-  MoreVertical,
   X,
 } from "lucide-react";
 import type { PaymentType } from "@/types/paymentTypes";
@@ -42,37 +36,37 @@ import NoDataFoundTable from "../../NoDataFoundTable";
 import { NotificationCreateModal } from "../../NotificationCreateModal";
 import { useState } from "react";
 import { paymentStatusArray } from "@/constants/paymentStatusArray";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
+import { useDebounceInput } from "@/hooks/useDebounceInput";
 
-type LandlordPaymentRentDueCard = {
+type DataType = {
   payments: PaymentType[];
   total: number;
   page: number;
   totalPages: number;
-  setSearch: React.Dispatch<React.SetStateAction<string>>;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
-  limit: number;
-  setStatus: React.Dispatch<React.SetStateAction<string>>;
-  status: string;
-  search: string;
-  isLoading: boolean;
 };
 
-const LandlordPaymentRentDueCard = ({
-  payments,
-  total,
-  page,
-  totalPages,
-  setSearch,
-  setPage,
-  limit,
-  setStatus,
-  status,
-  search,
-  isLoading,
-}: LandlordPaymentRentDueCard) => {
+const LandlordPaymentRentDueCard = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [tenant, setTenant] = useState("");
   const [tenantFullName, setTenantFullName] = useState("");
+
+  const [status, setStatus] = useState("All");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounceInput(search);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading } = useQuery<DataType>({
+    queryKey: ["payments-month", page, limit, status, debouncedSearch],
+    queryFn: fetchData(
+      `http://localhost:8080/api/payments-month?page=${page}${
+        status !== "All" ? `&status=${status}` : ""
+      }&limit=${limit}${debouncedSearch ? `&search=${debouncedSearch}` : ""}`
+    ),
+    placeholderData: keepPreviousData,
+  });
 
   const handleOpenModal = (targetValue: string, fullName: string = "") => {
     setIsModalOpen(true);
@@ -99,7 +93,10 @@ const LandlordPaymentRentDueCard = ({
               <Bell className="w-4 h-4" />
               Remind All
             </Button>
-            <Select value={status} onValueChange={(value) => setStatus(value)}>
+            <Select value={status} onValueChange={(value) => {
+              setStatus(value);
+              setPage(1);
+            }}>
               <SelectTrigger className="w-34">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -150,8 +147,8 @@ const LandlordPaymentRentDueCard = ({
           <TableBody>
             {isLoading ? (
               <LandlordTenantTableRowSkeleton />
-            ) : payments && payments.length > 0 ? (
-              payments?.map((item) => (
+            ) : data && data.payments && data.payments.length > 0 ? (
+              data.payments.map((item) => (
                 <LandlordPaymentDueTableRow
                   key={item?._id}
                   item={item}
@@ -167,13 +164,13 @@ const LandlordPaymentRentDueCard = ({
           </TableBody>
         </Table>
       </CardContent>
-      {payments && payments?.length > 0 && (
+      {data && data.payments && data.payments.length > 0 && (
         <CardFooter className="flex justify-between">
           <Pagination
             limit={limit}
             page={page}
-            total={total}
-            totalPages={totalPages}
+            total={data.total}
+            totalPages={data.totalPages}
             setPage={setPage}
           />
         </CardFooter>
@@ -184,7 +181,7 @@ const LandlordPaymentRentDueCard = ({
           isModalOpen={isModalOpen}
           onCloseModal={handleCloseModal}
           fullName={tenantFullName}
-          tenantUid={tenant}
+          tenantId={tenant}
         />
       )}
     </Card>

@@ -1,7 +1,7 @@
 export type LeaseType = {
   _id: string;
   unitId: string; // or mongoose.Types.ObjectId if you're using Mongoose
-  landlordUid: string;
+  landlordId: string;
   leaseStart: string; // or Date
   leaseEnd: string; // or Date
   rentAmount: number;
@@ -12,7 +12,7 @@ export type LeaseType = {
   createdAt: string; // or Date
   updatedAt: string; // or Date
   __v: number;
-  tenantUid: string;
+  tenantId: string;
   lateFee: {
     amount: number;
     afterDays: number;

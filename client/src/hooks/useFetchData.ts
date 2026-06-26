@@ -24,7 +24,6 @@
 //       try {
 //         const response = await axios.get(url, {
 //           headers: {
-//             Authorization: `Bearer ${token}`,
 //           },
 //           signal: controller.signal,
 //         });

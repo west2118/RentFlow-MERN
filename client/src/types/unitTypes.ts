@@ -15,8 +15,8 @@ export type UnitType = {
   amenities: string[];
   status: "Available" | "Occupied" | "Under Maintenance";
   notes: string;
-  landlordUid: string;
-  tenantUid?: string | null;
+  landlordId: string;
+  tenantId?: string | null;
   tenantName?: string | null;
   tenantGmail?: string;
   hasLease?: boolean;

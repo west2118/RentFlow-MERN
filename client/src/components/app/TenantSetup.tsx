@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "../ui/switch";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
-import { TabsContent } from "../ui/tabs";
+
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useForm } from "@/hooks/useForm";
@@ -85,13 +85,7 @@ const TenantSetup = () => {
         "http://localhost:8080/api/user",
         {
           ...addedData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        });
 
       toast.success("Profile updated successfully!");
       navigate("/tenant/");
@@ -103,7 +97,7 @@ const TenantSetup = () => {
   };
 
   return (
-    <TabsContent value="tenant">
+    <div className="w-full">
       <Card>
         <CardHeader>
           <CardTitle>Tenant Setup</CardTitle>
@@ -194,7 +188,7 @@ const TenantSetup = () => {
           </Button>
         </CardFooter>
       </Card>
-    </TabsContent>
+    </div>
   );
 };
 

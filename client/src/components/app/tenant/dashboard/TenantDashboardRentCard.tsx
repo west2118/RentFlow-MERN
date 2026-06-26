@@ -34,8 +34,8 @@ const TenantDashboardRentCard = ({
 
   const { data } = useQuery<ReceiptType>({
     queryKey: ["tenant-receipt", payment?._id],
-    queryFn: fetchData("http://localhost:8080/api/receipt", token, true),
-    enabled: !!token && !!payment?._id,
+    queryFn: fetchData("http://localhost:8080/api/receipt", true),
+    enabled: !!payment?._id,
   });
 
   if (status === "expired") {

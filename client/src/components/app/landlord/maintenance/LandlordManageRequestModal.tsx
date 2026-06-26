@@ -62,7 +62,7 @@ const LandlordManageRequestModal = ({
     const submitData = {
       tenantName: item?.tenantName,
       maintenanceId: item._id,
-      tenantUid: item?.tenantUid,
+      tenantId: item?.tenantId,
       status,
       message,
     };
@@ -75,13 +75,7 @@ const LandlordManageRequestModal = ({
         "http://localhost:8080/api/inprogress-maintenance",
         {
           ...fullData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        });
 
       toast.success(response?.data?.message);
     } catch (error: any) {

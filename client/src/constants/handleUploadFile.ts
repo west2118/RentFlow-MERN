@@ -10,7 +10,8 @@ export const handleUploadFile = async (file: File | null) => {
     `https://api.cloudinary.com/v1_1/${
       import.meta.env.VITE_FILE_UPLOAD_PRESET
     }/auto/upload`,
-    formData
+    formData,
+    { withCredentials: false }
   );
 
   return res.data.secure_url;

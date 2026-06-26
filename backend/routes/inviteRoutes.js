@@ -5,6 +5,6 @@ import { verifyToken } from "../middleware/verifyToken.js";
 const router = express.Router();
 
 router.post("/invite", verifyToken, sendInvite);
-router.get("/invite/:id", verifyToken, getUserInvite);
+router.get("/invite/:unitId", verifyToken, getUserInvite);
 
 export default router;

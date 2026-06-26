@@ -1,5 +1,3 @@
-import { Button } from "../ui/button";
-
 type PaginationProps = {
   limit: number;
   page: number;
@@ -33,42 +31,53 @@ const Pagination = ({
   }
 
   return (
-    <>
-      <div className="text-sm text-muted-foreground">
-        Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-        <span className="font-medium">
+    <div className="flex items-center justify-between gap-4 w-full">
+      <div className="text-sm text-gray-500">
+        Showing{" "}
+        <span className="font-medium text-gray-900">
+          {(page - 1) * limit + 1}
+        </span>{" "}
+        to{" "}
+        <span className="font-medium text-gray-900">
           {Math.min(page * limit, total ?? 0)}
         </span>{" "}
-        of <span className="font-medium">{total}</span> units
+        of <span className="font-medium text-gray-900">{total}</span> units
       </div>
-      <div className="flex space-x-2">
-        <Button
+
+      <div className="flex items-center gap-1">
+        {/* Previous */}
+        <button
           onClick={() => setPage((p: number) => Math.max(1, p - 1))}
           disabled={page === 1}
-          variant="outline"
-          size="sm">
+          className="h-8 px-3 text-sm rounded-md border border-gray-200 bg-white text-gray-900
+                 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none">
           Previous
-        </Button>
+        </button>
 
+        {/* Page numbers */}
         {pageNumbers.map((num) => (
-          <Button
+          <button
             key={num}
             onClick={() => setPage(num)}
-            variant={num === page ? "default" : "outline"}
-            size="sm">
+            className={`h-8 w-8 text-sm rounded-md border transition
+          ${num === page
+                ? "bg-black text-white border-black"
+                : "bg-white text-black border-black hover:bg-black"
+              }`}>
             {num}
-          </Button>
+          </button>
         ))}
 
-        <Button
+        {/* Next */}
+        <button
           onClick={() => setPage((p) => Math.min(totalPages ?? 0, p + 1))}
           disabled={page === totalPages}
-          variant="outline"
-          size="sm">
+          className="h-8 px-3 text-sm rounded-md border border-gray-200 bg-white text-gray-900
+                 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none">
           Next
-        </Button>
+        </button>
       </div>
-    </>
+    </div>
   );
 };
 

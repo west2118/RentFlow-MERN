@@ -3,8 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "@/hooks/useForm";
 import { useUserStore } from "@/store/useUserStore";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { Mail, User, X } from "lucide-react";
+import { Loader, Mail, User, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { toast } from "react-toastify";
@@ -42,11 +43,7 @@ export function InviteTenantModal({
       try {
         const response = await axios.get(
           `http://localhost:8080/api/invite/${unitId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { withCredentials: true }
         );
 
         setInviteLink(response?.data);
@@ -72,30 +69,33 @@ export function InviteTenantModal({
     };
   }, [isModalOpen]);
 
-  const handleSubmit = async () => {
-    if (Object.values(formData).some((value) => value.trim() === "")) {
-      return toast.error("Missing field required");
-    }
-
-    try {
+  const { mutate: inviteTenant, isPending } = useMutation({
+    mutationFn: async () => {
       const response = await axios.post(
         "http://localhost:8080/api/invite",
         {
           ...formData,
           unitId,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { withCredentials: true }
       );
-
-      toast.success(response.data.message);
-      setInviteLink(response.data.inviteLink);
-    } catch (error: any) {
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setInviteLink(data.inviteLink);
+    },
+    onError: (error: any) => {
       toast.error(error.response?.data?.message || error.message);
+    },
+  });
+
+  const handleSubmit = () => {
+    if (Object.values(formData).some((value) => value.trim() === "")) {
+      return toast.error("Missing field required");
     }
+
+    inviteTenant();
   };
 
   const modalRoot = document.getElementById("modal-root");
@@ -202,8 +202,8 @@ export function InviteTenantModal({
                 Cancel
               </Button>
               {!inviteLink && (
-                <Button onClick={handleSubmit} className="gap-2">
-                  <Mail className="h-4 w-4" />
+                <Button disabled={isPending} onClick={handleSubmit} className="gap-2">
+                  {isPending ? <Loader className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                   Send Invite
                 </Button>
               )}

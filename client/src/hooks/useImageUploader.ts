@@ -55,7 +55,8 @@ export const useImageUploader = <T extends string>(initialTypes: T[]) => {
           `https://api.cloudinary.com/v1_1/${
             import.meta.env.VITE_CLOUDNAME
           }/image/upload`,
-          formData
+          formData,
+          { withCredentials: false }
         );
 
         uploadedUrls.push({

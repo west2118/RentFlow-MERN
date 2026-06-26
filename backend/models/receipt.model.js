@@ -7,8 +7,8 @@ const ReceiptSchema = mongoose.Schema(
       ref: "Payment",
       required: true,
     },
-    tenantUid: { type: String, required: true },
-    landlordUid: { type: String, required: true },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    landlordId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     leaseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lease",

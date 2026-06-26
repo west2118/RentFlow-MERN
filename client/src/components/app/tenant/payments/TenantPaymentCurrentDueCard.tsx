@@ -1,8 +1,10 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { formatDate } from "@/constants/formatDate";
 import type { PaymentType } from "@/types/paymentTypes";
 import { CalendarDays, DollarSign } from "lucide-react";
 import ExpiredLeaseContent from "../ExpiredLeaseContent";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const TenantPaymentCurrentDueCard = ({
   item,
@@ -11,6 +13,7 @@ const TenantPaymentCurrentDueCard = ({
   item: PaymentType | undefined;
   expired: string;
 }) => {
+  const navigate = useNavigate();
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -27,13 +30,22 @@ const TenantPaymentCurrentDueCard = ({
             </div>
             <div className="flex items-center text-sm text-muted-foreground mt-1">
               <CalendarDays className="h-4 w-4 mr-1" />
-              Due {formatDate(item?.dueDate.toString()!)}
+              Due {formatDate(item?.dueDate?.toString()!)}
             </div>
           </>
         ) : (
           <ExpiredLeaseContent />
         )}
       </CardContent>
+      {expired !== "expired" && item && item.status !== "Paid" && (
+        <CardFooter>
+          <Button
+            onClick={() => navigate(`/tenant/make-payment/${item?._id}`)}
+            className="w-full">
+            Make Payment
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 };

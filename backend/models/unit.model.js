@@ -23,8 +23,8 @@ const UnitSchema = mongoose.Schema({
     default: "available",
   },
   notes: { type: String, required: true },
-  landlordUid: { type: String, required: true },
-  tenantUid: { type: String, default: null },
+  landlordId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 });
 
 const Unit = mongoose.model("Unit", UnitSchema);

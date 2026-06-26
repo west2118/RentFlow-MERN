@@ -14,12 +14,16 @@ import TenantDashboardMaintenanceCard from "./TenantDashboardMaintenanceCard";
 import NoDataFoundCard from "../../landlord/NoDataFoundCard";
 import { useNavigate } from "react-router-dom";
 
-const TenantDashboardMaintenanceRequests = ({
-  maintenance,
-}: {
-  maintenance: MaintenanceType[];
-}) => {
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { fetchData } from "@/constants/fetchData";
+
+const TenantDashboardMaintenanceRequests = () => {
   const navigate = useNavigate();
+
+  const { data: maintenance } = useSuspenseQuery<MaintenanceType[]>({
+    queryKey: ["tenant-recent-maintenance"],
+    queryFn: fetchData("http://localhost:8080/api/tenant-recent-maintenance"),
+  });
 
   return (
     <Card>

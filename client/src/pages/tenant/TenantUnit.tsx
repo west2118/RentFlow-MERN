@@ -1,115 +1,19 @@
-import { Loading } from "@/components/app/Loading";
-import TenantUnitDetailsCards from "@/components/app/tenant/unit/TenantUnitDetailsCards";
-import TenantUnitLeaseInfoCard from "@/components/app/tenant/unit/TenantUnitLeaseInfoCard";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { fetchData } from "@/constants/fetchData";
-import { useUserStore } from "@/store/useUserStore";
-import type { LeaseType } from "@/types/leaseTypes";
-import type { UnitType } from "@/types/unitTypes";
-import { useQuery } from "@tanstack/react-query";
-import { Download, FileText } from "lucide-react";
-
-type DataType = {
-  unit: UnitType;
-  lease: LeaseType;
-};
+import { Suspense } from "react";
+import TenantUnitDetailsLeaseCards from "@/components/app/tenant/unit/TenantUnitDetailsLeaseCards";
+import { TenantUnitDetailsLeaseSkeleton } from "@/components/app/shared/skeletons/TenantUnitDetailsLeaseSkeleton";
+import TenantUnitCommunityRulesCard from "@/components/app/tenant/unit/TenantUnitCommunityRulesCard";
 
 const TenantUnit = () => {
-  const token = useUserStore((state) => state.userToken);
-
-  const { data, isLoading } = useQuery<DataType>({
-    queryKey: ["tenant-unit-lease"],
-    queryFn: fetchData("http://localhost:8080/api/tenant-unit-lease", token),
-    enabled: !!token,
-  });
-
-  console.log(data);
-
-  if (isLoading) return <Loading />;
 
   return (
     <main className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold">My Unit</h2>
-          <p className="text-muted-foreground">
-            Unit {data?.unit?.unitNumber} - {data?.unit?.address}
-          </p>
-        </div>
-        <Button variant="outline">
-          <FileText className="h-4 w-4 mr-2" />
-          Download Lease
-        </Button>
-      </div>
+      <Suspense fallback={<TenantUnitDetailsLeaseSkeleton />}>
+        <TenantUnitDetailsLeaseCards />
+      </Suspense>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Unit Details Card */}
-        <TenantUnitDetailsCards
-          unit={data?.unit}
-          status={data?.lease.status ?? ""}
-        />
-
-        {/* Lease Information Card */}
-        <TenantUnitLeaseInfoCard
-          lease={data?.lease}
-          status={data?.lease.status ?? ""}
-        />
-
         {/* Rules & Regulations Card */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Community Rules</CardTitle>
-            <CardDescription>
-              Important policies for your building
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mt-0.5">
-                  <span className="text-xs">1</span>
-                </div>
-                <p>Quiet hours from 10pm to 7am daily</p>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mt-0.5">
-                  <span className="text-xs">2</span>
-                </div>
-                <p>No smoking in units or common areas</p>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mt-0.5">
-                  <span className="text-xs">3</span>
-                </div>
-                <p>
-                  Maximum 2 overnight guests for no more than 7 consecutive
-                  nights
-                </p>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mt-0.5">
-                  <span className="text-xs">4</span>
-                </div>
-                <p>Trash must be taken to dumpsters daily</p>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mt-0.5">
-                  <span className="text-xs">5</span>
-                </div>
-                <p>No modifications to unit without written approval</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <TenantUnitCommunityRulesCard />
       </div>
     </main>
   );

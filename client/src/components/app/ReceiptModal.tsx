@@ -45,7 +45,7 @@ export function ReceiptModal({
   isCloseModal,
   payment,
 }: ReceiptModalProps) {
-  const userUid = useUserStore((state) => state.user?.uid);
+  const userId = useUserStore((state) => state.user?._id);
   const token = useUserStore((state) => state.userToken);
 
   const [data, setData] = useState<ReceiptType | null>(null);
@@ -63,13 +63,7 @@ export function ReceiptModal({
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/receipt/${payment._id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          `http://localhost:8080/api/receipt/${payment._id}`);
 
         console.log("Data Receipt: ", response.data);
 
@@ -115,23 +109,10 @@ export function ReceiptModal({
       if (status === "Accepted") {
         response = await axios.put(
           `http://localhost:8080/api/accept-receipt/${data?._id}`,
-          { lateFee: data?.lateFee },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          { lateFee: data?.lateFee });
       } else {
         response = await axios.put(
-          `http://localhost:8080/api/reject-receipt/${data?._id}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          `http://localhost:8080/api/reject-receipt/${data?._id}`);
       }
 
       toast.success(response?.data?.message);
@@ -312,7 +293,7 @@ export function ReceiptModal({
             variant="outline">
             Close
           </Button>
-          {data?.status === "Pending" && data?.landlordUid === userUid ? (
+          {data?.status === "Pending" && data?.landlordId === userId ? (
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => handleAcceptReceipt("Rejected")}

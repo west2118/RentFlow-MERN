@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const DocumentSchema = mongoose.Schema(
   {
-    landlordUid: { type: String, required: true },
-    tenantUid: { type: String, required: true },
+    landlordId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     tenantFullName: { type: String, required: true },
     category: { type: String, required: true },
     unitNumber: { type: String, required: true },

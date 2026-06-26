@@ -44,7 +44,7 @@ import { toast } from "react-toastify";
 
 type FormData = {
   category: string;
-  tenantUid: string;
+  tenantId: string;
 };
 
 export function LandlordUploadDocumentsPage() {
@@ -53,15 +53,15 @@ export function LandlordUploadDocumentsPage() {
   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
   const { formData, setField } = useForm<FormData>({
     category: "",
-    tenantUid: "",
+    tenantId: "",
   });
   const { documents, handleDocumentsChange, uploadDocuments, setDocumuents } =
     useDocumentUploader();
 
   const { data, isLoading } = useQuery<UserType[]>({
     queryKey: ["landlord-all-tenants"],
-    queryFn: fetchData(`http://localhost:8080/api/landlord-all-tenants`, token),
-    enabled: !!token,
+    queryFn: fetchData("http://localhost:8080/api/landlord-all-tenants"),
+    
   });
 
   const handleSubmit = async (e: any) => {
@@ -82,13 +82,7 @@ export function LandlordUploadDocumentsPage() {
         `http://localhost:8080/api/document`,
         {
           ...addedData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        });
 
       navigate("/landlord/documents");
       toast.success(response.data.message);
@@ -156,14 +150,14 @@ export function LandlordUploadDocumentsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="tenant">Select Tenant</Label>
                     <Select
-                      value={formData.tenantUid}
-                      onValueChange={(value) => setField("tenantUid", value)}>
+                      value={formData.tenantId}
+                      onValueChange={(value) => setField("tenantId", value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose tenant" />
                       </SelectTrigger>
                       <SelectContent>
                         {data?.map((item) => (
-                          <SelectItem key={item.uid} value={item.uid}>
+                          <SelectItem key={item._id} value={item._id}>
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4" />
                               {`${item.firstName} ${item.lastName} (Unit ${item.unitNumber})`}

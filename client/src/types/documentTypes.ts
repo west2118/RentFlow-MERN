@@ -1,7 +1,7 @@
 export type DocumentType = {
   _id: string;
-  landlordUid: string;
-  tenantUid: string;
+  landlordId: string;
+  tenantId: string;
   tenantFullName: string;
   category: string;
   unitNumber: string;

@@ -104,7 +104,11 @@ export default function SignUp() {
       setUser(user);
 
       toast.success("Account created successfully!");
-      navigate("/onboarding");
+      if (user.role === "tenant") {
+        navigate("/onboarding/tenant");
+      } else {
+        navigate("/onboarding/landlord");
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message);
     } finally {

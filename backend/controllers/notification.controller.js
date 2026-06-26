@@ -4,15 +4,15 @@ import User from "../models/user.model.js";
 
 const postNotification = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { userId, title, message, type } = req.body;
 
-    const user = await User.find({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
-    const receiver = await User.find({ uid: userId });
+    const receiver = await User.findById(userId);
     if (!receiver) {
       return res.status(400).json({ message: "Tenant didn't exist" });
     }
@@ -35,7 +35,7 @@ const postNotification = async (req, res) => {
 
 const postRemindersNotification = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
     const { title, message, type } = req.body;
 
     const now = new Date();
@@ -51,7 +51,7 @@ const postRemindersNotification = async (req, res) => {
     );
 
     const payments = await Payment.find({
-      landlordUid: uid,
+      landlordId: _id,
       dueDate: {
         $gte: startOfMonth,
         $lte: endOfMonth,
@@ -59,7 +59,7 @@ const postRemindersNotification = async (req, res) => {
     });
 
     const notifications = payments.map((payment) => ({
-      userId: payment.tenantUid,
+      userId: payment.tenantId,
       title,
       message,
       type,
@@ -76,16 +76,16 @@ const postRemindersNotification = async (req, res) => {
 
 const readNotifications = async (req, res) => {
   try {
-    const { uid } = req.user;
+    const { _id } = req.user;
 
-    const user = await User.find({ uid });
+    const user = await User.findById(_id);
     if (!user) {
       return res.status(400).json({ message: "User didn't exist" });
     }
 
     await Notification.updateMany(
       {
-        userId: uid,
+        userId: _id,
         read: false,
       },
       { $set: { read: true } }

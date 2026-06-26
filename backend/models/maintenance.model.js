@@ -16,8 +16,8 @@ const MaintenanceSchema = mongoose.Schema(
       ref: "Unit",
       required: true,
     },
-    tenantUid: { type: String, required: true },
-    landlordUid: { type: String, required: true },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    landlordId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );

@@ -94,13 +94,7 @@ const TenantMakePaymentFormCard = ({
           ...formData,
           fileUrl: imageUrls[0].url,
           paymentId: id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        });
 
       navigate("/tenant/payments");
       toast.success(response?.data.message);

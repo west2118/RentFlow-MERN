@@ -46,28 +46,27 @@ export function LeaseDetailsModal({
   isCloseModal,
   lease,
 }: LeaseDetailsModalProps) {
-  const token = useUserStore((state) => state.userToken);
-
   const [data, setData] = useState<DataType | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!lease?.tenantUid || !token) return;
+    if (!lease) return;
 
     const fetchData = async () => {
       setLoading(true);
 
       try {
-        const response = await axios.get(
-          `http://localhost:8080/api/unit-user/${lease?.tenantUid}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        setData(response.data);
+        if (lease.tenantId) {
+          const response = await axios.get(
+            `http://localhost:8080/api/unit-user/${lease.tenantId}`
+          );
+          setData(response.data);
+        } else {
+          const response = await axios.get(
+            `http://localhost:8080/api/unit/${lease.unitId}`
+          );
+          setData({ user: null as any, unit: response.data });
+        }
       } catch (error: any) {
         toast.error(error.response?.data?.message || error.message);
       } finally {
@@ -76,7 +75,7 @@ export function LeaseDetailsModal({
     };
 
     fetchData();
-  }, [lease?.tenantUid, token]);
+  }, [lease?.tenantId]);
 
   useEffect(() => {
     if (isModalOpen) {
