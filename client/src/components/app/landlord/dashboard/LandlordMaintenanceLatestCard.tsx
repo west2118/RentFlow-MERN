@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { statusStyle } from "@/constants/statusStyle";
+import { formatDate } from "@/constants/formatDate";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import { Clock, Wrench } from "lucide-react";
 
@@ -15,7 +16,7 @@ const LandlordMaintenanceLatestCard = ({
         <div>
           <p className="font-medium">{maintenance?.issueType}</p>
           <p className="text-sm text-muted-foreground">
-            Unit {maintenance?.unitNumber}
+            Unit {maintenance?.unitNumber} • {formatDate(maintenance?.createdAt)}
           </p>
         </div>
       </div>

@@ -20,10 +20,11 @@ import { statusStyle } from "@/constants/statusStyle";
 import { useUserStore } from "@/store/useUserStore";
 import type { MaintenanceType } from "@/types/maintenanceTypes";
 import axios from "axios";
-import { Mail, X, AlertCircle, Clock, CheckCircle2 } from "lucide-react";
+import { Mail, X, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { toast } from "react-toastify";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 type LandlordManageRequestModalProps = {
   isModalOpen: boolean;
@@ -38,7 +39,6 @@ const LandlordManageRequestModal = ({
   item,
   status,
 }: LandlordManageRequestModalProps) => {
-  const token = useUserStore((state) => state.userToken);
   const [message, setMessage] = useState("");
   const [techNotes, setTechNotes] = useState("");
 
@@ -54,7 +54,28 @@ const LandlordManageRequestModal = ({
     };
   }, [isModalOpen]);
 
-  const handleUpdateMaintenance = async () => {
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async (fullData: any) => {
+      const response = await axios.put(
+        "http://localhost:8080/api/inprogress-maintenance",
+        fullData
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Maintenance updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["landlord-maintenance"] });
+      queryClient.invalidateQueries({ queryKey: ["landlord-latest-maintenance"] });
+      onCloseModal();
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || error.message);
+    },
+  });
+
+  const handleUpdateMaintenance = () => {
     if (message.trim() === "" || status === "") {
       return toast.error("Missing required field");
     }
@@ -70,17 +91,7 @@ const LandlordManageRequestModal = ({
     const fullData =
       status === "Completed" ? { ...submitData, techNotes } : submitData;
 
-    try {
-      const response = await axios.put(
-        "http://localhost:8080/api/inprogress-maintenance",
-        {
-          ...fullData,
-        });
-
-      toast.success(response?.data?.message);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message);
-    }
+    updateMutation.mutate(fullData);
   };
 
   const modalRoot = document.getElementById("modal-root");
@@ -152,8 +163,13 @@ const LandlordManageRequestModal = ({
               <Button
                 onClick={handleUpdateMaintenance}
                 variant="outline"
+                disabled={updateMutation.isPending}
                 size="sm">
-                <Mail className="h-4 w-4 mr-2" />
+                {updateMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4 mr-2" />
+                )}
                 Mark as {status === "In Progress" ? "In Progress" : "Completed"}
               </Button>
             </div>

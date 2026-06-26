@@ -16,16 +16,16 @@ export function TenantLayout() {
   }
 
   return (
-    <div className="max-h-screen bg-gray-50 flex overflow-hidden">
+    <div className="max-h-screen bg-white flex overflow-hidden">
       {/* Sidebar Navigation */}
       <TenantSidebar />
 
       {/* Main Content */}
-      <div className="min-h-screen bg-gray-50 flex flex-1 flex-col">
+      <div className="min-h-screen bg-white flex flex-1 flex-col">
         {/* Top Header */}
         <LayoutHeader />
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>
       </div>

@@ -99,7 +99,24 @@ const LandlordUnitCard = ({ item, handleOpenModal }: LandlordUnitCardProps) => {
         )}
       </CardContent>
       <CardFooter className="mt-auto flex justify-between">
-        {item?.status === "Occupied" && item?.tenantId ? (
+        {item?.lease?.status === "expired" ? (
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleOpenModal(item, "lease")}
+              variant="outline"
+              size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              View Lease
+            </Button>
+            <Button
+              onClick={() => navigate(`/landlord/lease/create/${item._id}`)}
+              variant="default"
+              size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              Add Lease
+            </Button>
+          </div>
+        ) : item?.status === "Occupied" && item?.tenantId ? (
           <Button
             onClick={() => handleOpenModal(item, "lease")}
             variant="outline"

@@ -40,7 +40,12 @@ const postLease = async (req, res) => {
       isActive: true,
     });
     if (alreadyHaveLease) {
-      return res.status(400).json({ message: "Unit already have lease" });
+      if (alreadyHaveLease.leaseEnd < new Date()) {
+        alreadyHaveLease.isActive = false;
+        await alreadyHaveLease.save();
+      } else {
+        return res.status(400).json({ message: "Unit already has an active lease" });
+      }
     }
 
     const newLease = new Lease({

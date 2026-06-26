@@ -22,7 +22,7 @@ export default function LandlordLayout() {
       <LandlordSidebar />
 
       {/* Main Content */}
-      <div className="min-h-screen flex-1 flex flex-col">
+      <div className="min-h-screen bg-white flex-1 flex flex-col">
         {/* Top Header */}
         <LayoutHeader />
 
